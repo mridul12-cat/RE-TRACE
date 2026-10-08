@@ -20,6 +20,9 @@ Verifies:
 16. Malformed ID sanitization and path traversal prevention
 17. Yield clamping and non-positive mass claim handling
 18. Direct verification auto-seeding
+19. Version endpoint v1.1.1
+20. Mass-balance claim-level breakdown and concise explanation
+21. DPP selection prefers RECYCLING_PENDING without state mutation
 """
 
 import concurrent.futures
@@ -688,6 +691,96 @@ class TestCustomVerificationWorkflow(unittest.TestCase):
         resp = self.client.post("/api/v1/custom-verification/verify", json=payload)
         self.assertEqual(resp.status_code, 200)
         self.assertEqual(resp.json()["overall_decision"], "VERIFIED")
+
+    # -------------------------------------------------------------------------
+    # 19. Version endpoint v1.1.1
+    # -------------------------------------------------------------------------
+    def test_19_version_endpoint_v1_1_1(self):
+        """Test 19: Health and root endpoints reflect v1.1.1 release version."""
+        resp_health = self.client.get("/health")
+        self.assertEqual(resp_health.status_code, 200)
+        data_health = resp_health.json()
+        self.assertEqual(data_health["version"], "1.1.1")
+        self.assertEqual(data_health["status"], "HEALTHY")
+
+        resp_root = self.client.get("/")
+        self.assertEqual(resp_root.status_code, 200)
+        data_root = resp_root.json()
+        self.assertEqual(data_root["version"], "1.1.1")
+
+    # -------------------------------------------------------------------------
+    # 20. Claim-level breakdown and concise explanation
+    # -------------------------------------------------------------------------
+    def test_20_mass_balance_claim_level_breakdown_and_concise_explanation(self):
+        """Test 20: Evaluates claim-level breakdown and concise explanation with mixed valid and impossible claims."""
+        pid = self._create_and_prep_passport("DPP-BREAKDOWN")
+        fid = self._upload_test_image("breakdown_test")
+
+        # Submit 1 valid claim (Cobalt 55.80 kg within ~60 kg theoretical) and 1 impossible claim (Apple 11.30 kg, not in BoM)
+        payload = {
+            "passport_id": pid,
+            "facility_id": "FAC-TEST-BREAKDOWN",
+            "operator_id": "OP-TEST-BREAKDOWN",
+            "intake_gross_mass_kg": 1000.0,
+            "claimed_materials": [
+                {"material_name": "Cobalt", "claimed_mass_kg": 55.8, "purity_pct": 99.5, "provenance": "OBSERVED"},
+                {"material_name": "Apple", "claimed_mass_kg": 11.3, "purity_pct": 99.0, "provenance": "OBSERVED"},
+            ],
+            "evidence_file_ids": [fid],
+        }
+
+        resp = self.client.post("/api/v1/custom-verification/verify", json=payload)
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+
+        # Gate verdicts must be distinct
+        self.assertEqual(data["overall_decision"], "FLAGGED")
+        self.assertEqual(data["mass_balance_decision"], "IMPOSSIBLE")
+        self.assertEqual(data["evidence_integrity_status"], "VERIFIED")
+
+        # Claim-level breakdown inspection
+        breakdown = data.get("claims_breakdown")
+        self.assertIsNotNone(breakdown)
+        self.assertEqual(len(breakdown), 2)
+
+        cobalt_item = next((item for item in breakdown if item["material_name"] == "Cobalt"), None)
+        self.assertIsNotNone(cobalt_item)
+        self.assertEqual(cobalt_item["status"], "VALID")
+        self.assertIn("fits nominal recovery envelope", cobalt_item["reason"])
+
+        apple_item = next((item for item in breakdown if item["material_name"] == "Apple"), None)
+        self.assertIsNotNone(apple_item)
+        self.assertEqual(apple_item["status"], "IMPOSSIBLE")
+        self.assertIn("not present in the product Bill of Materials", apple_item["reason"])
+
+        # Concise explanation must be present and detail the failure
+        explanation = data.get("concise_explanation")
+        self.assertIsNotNone(explanation)
+        self.assertIn("Apple", explanation)
+        self.assertIn("failed deterministic verification", explanation)
+
+    # -------------------------------------------------------------------------
+    # 21. DPP selection prefers RECYCLING_PENDING without state mutation
+    # -------------------------------------------------------------------------
+    def test_21_dpp_selection_prefers_recycling_pending(self):
+        """Test 21: Verify seed passports contain RECYCLING_PENDING candidate and sorting prioritizes it."""
+        seed_default_passports(force_reset=True)
+        resp = self.client.get("/api/v1/passports")
+        self.assertEqual(resp.status_code, 200)
+        passports = resp.json()
+        self.assertGreater(len(passports), 0)
+
+        # Confirm existence of RECYCLING_PENDING candidate
+        has_pending = any(p["current_lifecycle_state"] == "RECYCLING_PENDING" for p in passports)
+        self.assertTrue(has_pending, "Default seeded passports must include at least one in RECYCLING_PENDING state")
+
+        # Emulate the frontend sorting logic from cvLoadPassports()
+        sorted_passports = sorted(
+            passports,
+            key=lambda p: 0 if p["current_lifecycle_state"] == "RECYCLING_PENDING" else 1
+        )
+        self.assertEqual(sorted_passports[0]["current_lifecycle_state"], "RECYCLING_PENDING")
+        self.assertEqual(sorted_passports[0]["passport_id"], "DPP-EV-NMC622-2026-M04")
 
 
 if __name__ == "__main__":

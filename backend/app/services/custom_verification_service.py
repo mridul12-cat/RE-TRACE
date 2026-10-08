@@ -18,7 +18,7 @@ import re
 import threading
 import logging
 from datetime import datetime, timezone
-from typing import List, Dict, Any, Optional
+from typing import List, Dict, Any, Optional, Tuple
 
 from shared.schemas.provenance import ProvenanceCategory
 from shared.schemas.recycling_event import RecyclingEvent, ClaimedMaterial
@@ -428,6 +428,80 @@ class CustomVerificationService:
                 f"{mb_result.mathematical_explanation[:250]}"
             )
 
+        # ---------------------------------------------------------------------
+        # 12. Claim-by-Claim Breakdown & Concise Explanation (v1.1.1 UX Hardening)
+        # ---------------------------------------------------------------------
+        claims_breakdown: List[Dict[str, Any]] = []
+        explanation_parts = [p.strip() for p in mb_result.mathematical_explanation.split(" | ")]
+        gross_violation = any("Gross conservation of mass violated" in p for p in explanation_parts)
+
+        for claim in claimed_materials:
+            c_name = claim.material_name.strip()
+            c_mass = claim.claimed_mass_kg
+
+            # Look up matching component in BoM (case-insensitive)
+            matched_comp = None
+            canonical_name = c_name
+            for bom_comp in passport.material_composition.components:
+                if bom_comp.material_name.strip().lower() == c_name.lower():
+                    matched_comp = bom_comp
+                    canonical_name = bom_comp.material_name.strip()
+                    break
+
+            c_status = "VALID"
+            c_reason = ""
+
+            if gross_violation:
+                c_status = "IMPOSSIBLE"
+                c_reason = "Gross intake conservation violated."
+            elif matched_comp is None:
+                c_status = "IMPOSSIBLE"
+                c_reason = f'Material "{c_name}" is not present in the product Bill of Materials.'
+            else:
+                for part in explanation_parts:
+                    if canonical_name.lower() in part.lower():
+                        if part.startswith("IMPOSSIBLE:"):
+                            c_status = "IMPOSSIBLE"
+                            c_reason = part[len("IMPOSSIBLE:"):].strip()
+                            break
+                        elif part.startswith("BORDERLINE:"):
+                            c_status = "BORDERLINE"
+                            c_reason = part[len("BORDERLINE:"):].strip()
+                            break
+                        elif part.startswith("VALID:"):
+                            c_status = "VALID"
+                            c_reason = part[len("VALID:"):].strip()
+                            break
+
+            claims_breakdown.append({
+                "material_name": c_name,
+                "claimed_mass_kg": round(c_mass, 4),
+                "status": c_status,
+                "reason": c_reason,
+                "expected_kg": mb_result.expected_recoverable_kg.get(canonical_name),
+                "tolerance_band": mb_result.tolerance_bands_kg.get(canonical_name),
+                "discrepancy_kg": mb_result.discrepancies_kg.get(canonical_name),
+            })
+
+        if mb_dec_str == "IMPOSSIBLE":
+            failing_claims = [c for c in claims_breakdown if c["status"] == "IMPOSSIBLE"]
+            if failing_claims:
+                count_str = f"{len(failing_claims)} claim{'s' if len(failing_claims) > 1 else ''} failed deterministic verification."
+                reasons_str = "\n".join(f"- {c['reason']}" for c in failing_claims if c['reason'])
+                concise_explanation = f"{count_str}\n{reasons_str}".strip()
+            else:
+                concise_explanation = mb_result.mathematical_explanation
+        elif mb_dec_str == "BORDERLINE":
+            borderline_claims = [c for c in claims_breakdown if c["status"] == "BORDERLINE"]
+            if borderline_claims:
+                count_str = f"{len(borderline_claims)} claim{'s' if len(borderline_claims) > 1 else ''} deviated from nominal tolerance envelope."
+                reasons_str = "\n".join(f"- {c['reason']}" for c in borderline_claims if c['reason'])
+                concise_explanation = f"{count_str}\n{reasons_str}\nRequires supervisor audit of assay titration logs.".strip()
+            else:
+                concise_explanation = mb_result.mathematical_explanation
+        else:
+            concise_explanation = "All declared recovery claims satisfy stoichiometric conservation and BAT yield envelopes."
+
         return {
             "event_id": assigned_event_id,
             "passport_id": passport.passport_id,
@@ -437,6 +511,8 @@ class CustomVerificationService:
             "evidence_integrity_message": integrity_msg,
             "lifecycle_state": current_state,
             "mathematical_explanation": mb_result.mathematical_explanation,
+            "concise_explanation": concise_explanation,
+            "claims_breakdown": claims_breakdown,
             "mass_balance_result": mb_result,
             "evidence_bundle": bundle,
             "blockchain": {

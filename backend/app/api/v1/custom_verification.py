@@ -13,7 +13,7 @@ Composes existing:
 - Proof-of-Recycling (PoR) certificate generation
 """
 
-from typing import List, Optional, Dict, Any
+from typing import List, Optional, Dict, Any, Tuple
 from pydantic import BaseModel, Field
 from fastapi import APIRouter, status
 
@@ -88,6 +88,16 @@ class BlockchainAnchorInfo(BaseModel):
     block_number: Optional[int] = None
 
 
+class ClaimBreakdownItem(BaseModel):
+    material_name: str
+    claimed_mass_kg: float
+    status: str  # "VALID", "BORDERLINE", "IMPOSSIBLE"
+    reason: Optional[str] = None
+    expected_kg: Optional[float] = None
+    tolerance_band: Optional[Tuple[float, float]] = None
+    discrepancy_kg: Optional[float] = None
+
+
 class CustomVerificationResponse(BaseModel):
     event_id: str
     passport_id: str
@@ -104,6 +114,8 @@ class CustomVerificationResponse(BaseModel):
     certificate_block_reason: Optional[str] = None
     ai_observation: Optional[AIObservationResult] = None
     ai_notice: Optional[str] = None
+    claims_breakdown: Optional[List[ClaimBreakdownItem]] = None
+    concise_explanation: Optional[str] = None
 
 
 @router.post(

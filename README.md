@@ -1,4 +1,4 @@
-# RE:TRACE — Verifiable Circular Economy & Climate Tracking Platform
+# RE:TRACE v1.1.1 — Verifiable Circular Economy & Climate Tracking Platform
 
 > **IEEE Hackathon — Sustainable Supply Chains Track**  
 > **Autonomous Multi-Agent Architecture for Critical Battery & Electronics Traceability**  
@@ -103,6 +103,10 @@ The web dashboard (`http://localhost:8000/dashboard`) includes one-click executa
 - **Attack**: An adversary modifies a single byte in the weighbridge scale receipt ticket or alters a quantitative value in the manifest.
 - **Verification**: The verification endpoint re-computes the RFC 8785 canonical JSON hash and EVM `keccak256` commitment against the on-chain anchor.
 - **Outcome**: Mismatch detected! System returns `EVIDENCE_INTEGRITY_FAILURE` with exact mismatch hashes. Lifecycle advancement is rejected.
+ 
+### Custom Recycling Verification Workbench
+Custom Verification allows an evaluator to select an existing Digital Product Passport, submit a new recycling event, upload physical evidence, optionally run AI observation, and execute the same deterministic verification pipeline used by the interactive scenarios.
+
 
 ---
 

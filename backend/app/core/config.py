@@ -13,7 +13,7 @@ WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 class Settings(BaseModel):
     app_name: str = "RE:TRACE Circular Economy Verification Platform"
-    app_version: str = "1.0.0"
+    app_version: str = "1.1.1"
     api_v1_prefix: str = "/api/v1"
     environment: str = Field(default_factory=lambda: os.getenv("ENVIRONMENT", "demo"))
 

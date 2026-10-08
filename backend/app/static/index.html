@@ -44,7 +44,7 @@
         </div>
         <div>
           <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            RE:TRACE <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">v1.0.0</span>
+            RE:TRACE <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">v1.1.1</span>
           </h1>
           <p class="text-xs text-slate-400">Verifiable Digital Product Passports & Circular Mass-Balance</p>
         </div>
@@ -374,17 +374,24 @@
             </div>
 
             <!-- AI Mode Selector (Shown when enabled) -->
-            <div id="cv-ai-mode-row" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
-              <div>
-                <label class="block text-slate-400 mb-1">Execution Mode:</label>
-                <select id="cv-ai-force-mode" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs">
-                  <option value="DETERMINISTIC_FIXTURE" selected>DETERMINISTIC_FIXTURE (SIMULATED)</option>
-                  <option value="LIVE_GEMINI">LIVE_GEMINI (Google Gemini 2.5)</option>
-                </select>
+            <div id="cv-ai-mode-row" class="hidden space-y-2 pt-1">
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label class="block text-slate-400 mb-1">Execution Mode:</label>
+                  <select id="cv-ai-force-mode" onchange="cvOnAIModeChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs">
+                    <option value="DETERMINISTIC_FIXTURE" selected>DETERMINISTIC_FIXTURE (SIMULATED)</option>
+                    <option value="LIVE_GEMINI">LIVE_GEMINI (Google Gemini Multimodal)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-400 mb-1">Custom Event ID (Optional):</label>
+                  <input id="cv-custom-event-id" type="text" placeholder="Auto-generated if empty" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none focus:border-indigo-500">
+                </div>
               </div>
-              <div>
-                <label class="block text-slate-400 mb-1">Custom Event ID (Optional):</label>
-                <input id="cv-custom-event-id" type="text" placeholder="Auto-generated if empty" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none focus:border-indigo-500">
+
+              <!-- AI Mode Explanatory Card (Change 3) -->
+              <div id="cv-ai-mode-card" class="p-2.5 rounded-lg border text-xs font-mono space-y-1">
+                <!-- Populated dynamically via cvOnAIModeChange() -->
               </div>
             </div>
 
@@ -421,40 +428,60 @@
               Lifecycle State: <span id="cv-res-lifecycle-state" class="font-mono text-emerald-400 font-bold">-</span>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <span id="cv-res-overall-verdict" class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono">
-              VERIFIED
-            </span>
+          <div class="flex flex-wrap items-center gap-2">
+            <!-- 3 Distinct Semantic Dimensions (Change 1) -->
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">
+              <span class="text-slate-400">Mass Balance:</span>
+              <span id="cv-res-header-mb-badge" class="font-bold text-emerald-300">VALID</span>
+            </div>
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">
+              <span class="text-slate-400">Evidence Integrity:</span>
+              <span id="cv-res-header-int-badge" class="font-bold text-emerald-300">VERIFIED</span>
+            </div>
+            <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">
+              <span class="text-slate-400">Overall:</span>
+              <span id="cv-res-overall-verdict" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono">
+                VERIFIED
+              </span>
+            </div>
           </div>
         </div>
 
         <!-- 4 Core Result Cards -->
         <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Card 1: Mass Balance Outcome -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <!-- Card 1: Mass Balance Outcome (Enhanced per Change 1) -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
             <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-medium">Mass Balance Gate</span>
+              <span class="text-slate-300 font-bold uppercase tracking-wider font-mono">MASS BALANCE GATE</span>
               <span id="cv-res-mb-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300">VALID</span>
             </div>
-            <div class="text-xs space-y-1 font-mono text-slate-300">
+            <div class="text-xs space-y-1 font-mono text-slate-300 bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
               <div class="flex justify-between">
-                <span class="text-slate-500">Intake Mass:</span>
-                <span id="cv-res-mb-intake">1000.0 kg</span>
+                <span class="text-slate-400">Intake Mass:</span>
+                <span id="cv-res-mb-intake" class="font-bold text-slate-200">1000.0 kg</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-500">Claimed Recovery:</span>
-                <span id="cv-res-mb-claimed">541.3 kg</span>
+                <span class="text-slate-400">Claimed Recovery:</span>
+                <span id="cv-res-mb-claimed" class="font-bold text-white">541.3 kg</span>
               </div>
             </div>
-            <div class="text-[11px] text-slate-400 line-clamp-2" id="cv-res-mb-summary">-</div>
-            <!-- Material breakdown table -->
-            <div class="pt-2 border-t border-slate-800/80">
-              <div class="text-[10px] font-semibold text-slate-400 mb-1">Claimed vs BoM Bounds:</div>
-              <div class="max-h-24 overflow-y-auto">
-                <table class="w-full text-left text-[10px] font-mono">
-                  <tbody id="cv-res-mb-breakdown-tbody" class="divide-y divide-slate-800/60 text-slate-300">
-                  </tbody>
-                </table>
+
+            <!-- Claim-Level Breakdown (Change 1) -->
+            <div class="space-y-1.5 pt-1 border-t border-slate-800/80">
+              <div class="flex justify-between items-center text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
+                <span>Claim-Level Breakdown</span>
+                <span class="text-[9px] text-slate-500">Stoichiometric Gate</span>
+              </div>
+              <div id="cv-res-mb-breakdown-list" class="space-y-1 max-h-36 overflow-y-auto pr-0.5">
+                <!-- Dynamically populated: ✓ Cobalt 55.80 kg VALID / ✕ Apple 11.30 kg IMPOSSIBLE -->
+              </div>
+            </div>
+
+            <!-- Concise Mathematical Explanation Block (Change 1) -->
+            <div class="pt-1.5 border-t border-slate-800/80">
+              <div class="text-[10px] font-semibold text-slate-400 mb-1 font-mono uppercase">Explanation:</div>
+              <div id="cv-res-mb-explanation-box" class="p-2 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 whitespace-pre-wrap leading-relaxed max-h-24 overflow-y-auto">
+                -
               </div>
             </div>
           </div>
@@ -944,6 +971,13 @@
           return;
         }
 
+        // Sort so that RECYCLING_PENDING (eligible) DPPs appear at the top (Change 2)
+        _cvPassports.sort((a, b) => {
+          const aPending = (a.current_lifecycle_state === 'RECYCLING_PENDING') ? 0 : 1;
+          const bPending = (b.current_lifecycle_state === 'RECYCLING_PENDING') ? 0 : 1;
+          return aPending - bPending;
+        });
+
         _cvPassports.forEach(p => {
           const opt = document.createElement('option');
           opt.value = p.passport_id;
@@ -953,12 +987,16 @@
           select.appendChild(opt);
         });
 
-        // Auto-select first or one with RECYCLING_PENDING
-        const pendingIdx = _cvPassports.findIndex(p => p.current_lifecycle_state === 'RECYCLING_PENDING');
-        if (pendingIdx >= 0) {
-          select.selectedIndex = pendingIdx;
+        // Prefer selecting an eligible DPP in RECYCLING_PENDING (Change 2)
+        const eligibleIdx = _cvPassports.findIndex(p => p.current_lifecycle_state === 'RECYCLING_PENDING');
+        if (eligibleIdx >= 0) {
+          select.selectedIndex = eligibleIdx;
+          select.value = _cvPassports[eligibleIdx].passport_id;
         } else {
           select.selectedIndex = 0;
+          if (_cvPassports.length > 0) {
+            select.value = _cvPassports[0].passport_id;
+          }
         }
 
         cvOnPassportChange();
@@ -1176,11 +1214,42 @@
       document.getElementById('cv-claimed-total-sum').textContent = `${total.toFixed(2)} kg`;
     }
 
+    function cvOnAIModeChange() {
+      const modeSelect = document.getElementById('cv-ai-force-mode');
+      const card = document.getElementById('cv-ai-mode-card');
+      if (!card || !modeSelect) return;
+      const mode = modeSelect.value;
+      if (mode === 'LIVE_GEMINI') {
+        card.className = 'p-2.5 rounded-lg bg-purple-950/40 border border-purple-500/40 text-xs text-purple-200 space-y-1 font-mono';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-purple-600 text-white">LIVE GEMINI</span>
+            <span class="text-purple-300 text-[10px]">Multimodal API</span>
+          </div>
+          <p class="text-[11px] text-purple-200">
+            AI observation is generated from the uploaded evidence. AI remains non-authoritative; deterministic verification makes the final decision.
+          </p>
+        `;
+      } else {
+        card.className = 'p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 space-y-1 font-mono';
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-800 text-slate-300 border border-slate-600">SIMULATED / DETERMINISTIC FIXTURE</span>
+            <span class="text-slate-400 text-[10px]">Provenance: <strong class="text-slate-300">SIMULATED</strong></span>
+          </div>
+          <p class="text-[11px] text-slate-400">
+            Uses replayable simulated AI output for offline, reproducible testing. Uploaded evidence is not sent to Gemini in this mode.
+          </p>
+        `;
+      }
+    }
+
     function cvToggleAI() {
       const toggle = document.getElementById('cv-ai-toggle');
       const row = document.getElementById('cv-ai-mode-row');
       if (toggle.checked) {
         row.classList.remove('hidden');
+        cvOnAIModeChange();
       } else {
         row.classList.add('hidden');
       }
@@ -1391,54 +1460,90 @@
         const verdictBadge = document.getElementById('cv-res-overall-verdict');
         verdictBadge.textContent = data.overall_decision;
         if (data.overall_decision === 'VERIFIED') {
-          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+          verdictBadge.className = 'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
         } else if (data.overall_decision === 'REVIEW') {
-          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-blue-500/20 text-blue-300 border border-blue-500/40';
+          verdictBadge.className = 'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-blue-500/20 text-blue-300 border border-blue-500/40';
         } else if (data.overall_decision === 'FLAGGED') {
-          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-rose-500/20 text-rose-300 border border-rose-500/40';
+          verdictBadge.className = 'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-rose-500/20 text-rose-300 border border-rose-500/40';
         } else {
-          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40';
+          verdictBadge.className = 'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40';
         }
 
-        // Mass balance
+        // Header semantic indicator badges (Change 1)
+        const headerMbBadge = document.getElementById('cv-res-header-mb-badge');
+        if (headerMbBadge) {
+          headerMbBadge.textContent = data.mass_balance_decision;
+          headerMbBadge.className = data.mass_balance_decision === 'VALID'
+            ? 'font-bold text-emerald-300'
+            : (data.mass_balance_decision === 'BORDERLINE' ? 'font-bold text-amber-300' : 'font-bold text-rose-400');
+        }
+
+        const headerIntBadge = document.getElementById('cv-res-header-int-badge');
+        if (headerIntBadge) {
+          headerIntBadge.textContent = data.evidence_integrity_status;
+          headerIntBadge.className = data.evidence_integrity_status === 'VERIFIED'
+            ? 'font-bold text-emerald-300'
+            : 'font-bold text-rose-400';
+        }
+
+        // Mass balance gate badge in Card 1
         const mbBadge = document.getElementById('cv-res-mb-badge');
-        mbBadge.textContent = data.mass_balance_decision;
-        if (data.mass_balance_decision === 'VALID') {
-          mbBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300';
-        } else if (data.mass_balance_decision === 'BORDERLINE') {
-          mbBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-500/20 text-amber-300';
-        } else {
-          mbBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-500/20 text-rose-300';
+        if (mbBadge) {
+          mbBadge.textContent = data.mass_balance_decision;
+          if (data.mass_balance_decision === 'VALID') {
+            mbBadge.className = 'px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+          } else if (data.mass_balance_decision === 'BORDERLINE') {
+            mbBadge.className = 'px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-amber-500/20 text-amber-300 border border-amber-500/30';
+          } else {
+            mbBadge.className = 'px-2.5 py-0.5 rounded font-mono font-bold text-xs bg-rose-500/20 text-rose-300 border border-rose-500/30';
+          }
         }
         document.getElementById('cv-res-mb-intake').textContent = `${data.mass_balance_result.intake_mass_kg} kg`;
         document.getElementById('cv-res-mb-claimed').textContent = `${data.mass_balance_result.claimed_total_recovered_kg} kg`;
-        document.getElementById('cv-res-mb-summary').textContent = data.mathematical_explanation.substring(0, 120) + '...';
 
-        // Render Claimed vs BoM Breakdown Table
-        const breakdownTbody = document.getElementById('cv-res-mb-breakdown-tbody');
-        if (breakdownTbody && data.mass_balance_result) {
-          breakdownTbody.innerHTML = '';
-          const expMap = data.mass_balance_result.expected_recoverable_kg || {};
-          const bandMap = data.mass_balance_result.tolerance_bands_kg || {};
-          const diffMap = data.mass_balance_result.discrepancies_kg || {};
+        // Render Claim-Level Breakdown (Change 1)
+        const breakdownList = document.getElementById('cv-res-mb-breakdown-list');
+        if (breakdownList) {
+          breakdownList.innerHTML = '';
+          const items = data.claims_breakdown || [];
+          if (items.length > 0) {
+            items.forEach(c => {
+              const div = document.createElement('div');
+              div.className = 'flex items-center justify-between p-1.5 rounded bg-slate-900 border border-slate-800 text-[11px] font-mono';
+              
+              let iconHtml, pillHtml;
+              if (c.status === 'VALID') {
+                iconHtml = '<span class="text-emerald-400 font-bold mr-1.5">✓</span>';
+                pillHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30">VALID</span>';
+              } else if (c.status === 'BORDERLINE') {
+                iconHtml = '<span class="text-amber-400 font-bold mr-1.5">⚠</span>';
+                pillHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30">BORDERLINE</span>';
+              } else {
+                iconHtml = '<span class="text-rose-400 font-bold mr-1.5">✕</span>';
+                pillHtml = '<span class="px-1.5 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30">IMPOSSIBLE</span>';
+              }
 
-          claims.forEach(c => {
-            const tr = document.createElement('tr');
-            const exp = expMap[c.material_name] !== undefined ? `${expMap[c.material_name].toFixed(2)} kg` : 'N/A';
-            const band = bandMap[c.material_name] ? `[${bandMap[c.material_name][0].toFixed(1)} - ${bandMap[c.material_name][1].toFixed(1)}]` : '-';
-            const diff = diffMap[c.material_name] !== undefined ? diffMap[c.material_name] : null;
-            const diffStr = diff !== null ? (diff >= 0 ? `+${diff.toFixed(2)} kg` : `${diff.toFixed(2)} kg`) : '-';
-            const diffColor = diff !== null ? (Math.abs(diff) <= 0.01 ? 'text-emerald-400' : (diff > 0 ? 'text-amber-300' : 'text-slate-400')) : 'text-slate-400';
+              div.innerHTML = `
+                <div class="flex items-center truncate">
+                  ${iconHtml}
+                  <span class="font-medium text-slate-200">${c.material_name}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="text-slate-300">${c.claimed_mass_kg.toFixed(2)} kg</span>
+                  ${pillHtml}
+                </div>
+              `;
+              breakdownList.appendChild(div);
+            });
+          }
+        }
 
-            tr.innerHTML = `
-              <td class="p-1 font-medium text-slate-200">${c.material_name}</td>
-              <td class="p-1 font-mono text-emerald-300">${c.claimed_mass_kg.toFixed(2)} kg</td>
-              <td class="p-1 font-mono text-slate-400">${exp}</td>
-              <td class="p-1 font-mono text-[9px] text-slate-500">${band}</td>
-              <td class="p-1 font-mono ${diffColor}">${diffStr}</td>
-            `;
-            breakdownTbody.appendChild(tr);
-          });
+        // Render Concise Explanation Block (Change 1)
+        const explanationBox = document.getElementById('cv-res-mb-explanation-box');
+        if (explanationBox) {
+          const dec = data.mass_balance_decision;
+          const concise = data.concise_explanation || data.mathematical_explanation;
+          explanationBox.textContent = `Decision: ${dec}\n\n${concise}`;
         }
 
         // Evidence integrity
@@ -1542,15 +1647,17 @@
           aiCard.classList.remove('hidden');
           const obs = data.ai_observation;
           if (aiBadge) {
-            aiBadge.textContent = obs.execution_mode === 'SIMULATED' ? 'SIMULATED FIXTURE' : (obs.execution_mode === 'LIVE' ? 'LIVE GEMINI' : 'AI_ESTIMATED');
+            aiBadge.textContent = obs.execution_mode === 'SIMULATED' ? 'SIMULATED / DETERMINISTIC FIXTURE' : (obs.execution_mode === 'LIVE' ? 'LIVE GEMINI' : 'AI_ESTIMATED');
             aiBadge.className = obs.execution_mode === 'SIMULATED'
-              ? 'px-2 py-0.5 rounded font-mono text-[10px] bg-amber-500/20 text-amber-300 font-bold'
-              : 'px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 font-bold';
+              ? 'px-2 py-0.5 rounded font-mono text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-bold'
+              : 'px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold';
           }
           aiDetails.innerHTML = `
-            <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model}) [${obs.execution_mode}]</div>
+            <div><strong>Execution Mode:</strong> ${obs.execution_mode === 'SIMULATED' ? 'SIMULATED / DETERMINISTIC FIXTURE' : 'LIVE GEMINI'}</div>
+            <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
+            <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] ${obs.execution_mode === 'SIMULATED' ? 'bg-slate-800 text-slate-300' : 'bg-purple-950/60 text-purple-300'} font-mono">${obs.execution_mode === 'SIMULATED' ? 'SIMULATED' : 'AI_ESTIMATED'}</span></div>
             <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
-            <div><strong>Notice:</strong> ${data.ai_notice || ''}</div>
+            <div class="text-purple-300/90 pt-1 font-semibold">AI observes evidence; deterministic verification makes the decision.</div>
           `;
         } else {
           aiCard.classList.add('hidden');
