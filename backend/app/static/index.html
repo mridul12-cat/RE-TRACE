@@ -1,0 +1,447 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RE:TRACE — Verifiable Circular Economy & Climate Tracking</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#ecfdf5',
+              100: '#d1fae5',
+              500: '#10b981',
+              600: '#059669',
+              700: '#047857',
+              900: '#064e3b',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    .provenance-measured { background-color: #10b981; color: white; }
+    .provenance-observed { background-color: #3b82f6; color: white; }
+    .provenance-ai { background-color: #8b5cf6; color: white; }
+    .provenance-assumed { background-color: #f59e0b; color: white; }
+    .provenance-simulated { background-color: #6b7280; color: white; }
+  </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-6 py-4">
+    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
+          <i class="fa-solid fa-recycle text-white text-xl"></i>
+        </div>
+        <div>
+          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
+            RE:TRACE <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">v1.0.0</span>
+          </h1>
+          <p class="text-xs text-slate-400">Verifiable Digital Product Passports & Circular Mass-Balance</p>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap items-center gap-3">
+        <!-- Blockchain Truthfulness Badge (Section R5) -->
+        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+          <span class="relative flex h-2 w-2">
+            <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+          </span>
+          <span id="blockchain-badge">LOCAL TESTNET (Chain ID: 31337)</span>
+        </div>
+
+        <!-- AI Mode Badge -->
+        <div class="px-3 py-1.5 rounded-lg bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-mono flex items-center gap-2">
+          <i class="fa-solid fa-microchip"></i>
+          <span>Dual-Mode AI: Gemini / Fixtures</span>
+        </div>
+
+        <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">
+          <i class="fa-solid fa-book mr-1"></i> API Docs
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
+
+    <!-- 1-Click Interactive Scenarios Hero Bar -->
+    <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-2xl relative overflow-hidden">
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
+        <div class="space-y-1">
+          <h2 class="text-lg font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-wand-magic-sparkles text-emerald-400"></i> Interactive Demo Walkthrough
+          </h2>
+          <p class="text-sm text-slate-400">Execute end-to-end hackathon scenarios to test cryptographic integrity, mathematical gating, and anti-fraud quarantine.</p>
+        </div>
+
+        <div class="flex flex-wrap gap-3">
+          <button onclick="runScenario('A')" id="btn-scenario-a" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95">
+            <i class="fa-solid fa-circle-check"></i> Run Scenario A (Legitimate)
+          </button>
+          <button onclick="runScenario('B')" id="btn-scenario-b" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-rose-600/20 active:scale-95">
+            <i class="fa-solid fa-triangle-exclamation"></i> Run Scenario B (Fraud Claim)
+          </button>
+          <button onclick="runScenario('C')" id="btn-scenario-c" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-amber-600/20 active:scale-95">
+            <i class="fa-solid fa-shield-halved"></i> Run Scenario C (Evidence Tampering)
+          </button>
+        </div>
+      </div>
+
+      <!-- Execution Output Banner -->
+      <div id="scenario-output" class="hidden mt-6 pt-6 border-t border-slate-800 space-y-4">
+        <div class="flex items-center justify-between">
+          <h3 id="scenario-title" class="text-base font-semibold text-white"></h3>
+          <span id="scenario-verdict" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></span>
+        </div>
+        <div id="scenario-stages" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+        <div id="scenario-math" class="hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono whitespace-pre-wrap text-slate-300"></div>
+      </div>
+    </section>
+
+    <!-- Provenance Category Legend (ADR-001 Pillar 1) -->
+    <div class="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-slate-900/40 border border-slate-800/80 text-xs">
+      <span class="font-semibold text-slate-400 mr-2"><i class="fa-solid fa-tag mr-1"></i> Data Provenance Standards:</span>
+      <span class="px-2.5 py-1 rounded-md provenance-measured font-mono">MEASURED (Certified Scale)</span>
+      <span class="px-2.5 py-1 rounded-md provenance-observed font-mono">OBSERVED (Operator Log)</span>
+      <span class="px-2.5 py-1 rounded-md provenance-ai font-mono">AI_ESTIMATED (Computer Vision)</span>
+      <span class="px-2.5 py-1 rounded-md provenance-assumed font-mono">REFERENCE_ASSUMED (OEM BoM)</span>
+      <span class="px-2.5 py-1 rounded-md provenance-simulated font-mono">SIMULATED (Test Fixture)</span>
+    </div>
+
+    <!-- 2x2 Grid of Core System Modules -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+
+      <!-- Panel 1: Digital Product Passport (DPP) -->
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
+              <i class="fa-solid fa-id-card"></i>
+            </div>
+            <h3 class="font-bold text-white">Digital Product Passport (DPP)</h3>
+          </div>
+          <span id="dpp-state-badge" class="px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-mono font-semibold">
+            MANUFACTURED
+          </span>
+        </div>
+
+        <div class="space-y-3 text-xs">
+          <div class="flex justify-between border-b border-slate-800/60 pb-2">
+            <span class="text-slate-400">Passport ID:</span>
+            <span id="dpp-id" class="font-mono text-slate-200 font-semibold">DPP-EV-NMC622-2026-M04</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/60 pb-2">
+            <span class="text-slate-400">Model Name:</span>
+            <span class="text-slate-200">24V Lithium-Ion EV Traction Battery Module (6S2P)</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/60 pb-2">
+            <span class="text-slate-400">Manufacturer:</span>
+            <span class="text-slate-200">Nordic Battery Systems AB</span>
+          </div>
+          <div class="flex justify-between border-b border-slate-800/60 pb-2">
+            <span class="text-slate-400">Gross Mass per Unit:</span>
+            <span class="font-mono text-slate-200">25.0 kg</span>
+          </div>
+        </div>
+
+        <!-- Bill of Materials (BoM) Table -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-400">
+            <span class="font-semibold text-slate-300">Certified Bill of Materials (EU Reg 2023/1542)</span>
+            <span class="px-2 py-0.5 rounded provenance-assumed text-[10px]">REFERENCE_ASSUMED</span>
+          </div>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs border border-slate-800 rounded-lg">
+              <thead class="bg-slate-950 text-slate-400 font-mono">
+                <tr>
+                  <th class="p-2">Material</th>
+                  <th class="p-2">Nominal %</th>
+                  <th class="p-2">BAT Yield</th>
+                  <th class="p-2">Critical</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-800/60 text-slate-300">
+                <tr>
+                  <td class="p-2 font-medium">Nickel (Ni)</td>
+                  <td class="p-2 font-mono">18.00%</td>
+                  <td class="p-2 font-mono text-emerald-400">92.0%</td>
+                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-medium">Cobalt (Co)</td>
+                  <td class="p-2 font-mono">6.00%</td>
+                  <td class="p-2 font-mono text-emerald-400">93.0%</td>
+                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-medium">Lithium (Li)</td>
+                  <td class="p-2 font-mono">2.80%</td>
+                  <td class="p-2 font-mono text-emerald-400">75.0%</td>
+                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
+                </tr>
+                <tr>
+                  <td class="p-2 font-medium">Copper (Cu)</td>
+                  <td class="p-2 font-mono">11.20%</td>
+                  <td class="p-2 font-mono text-emerald-400">94.0%</td>
+                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel 2: Dual-Mode AI Computer Vision Observation -->
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
+              <i class="fa-solid fa-camera"></i>
+            </div>
+            <h3 class="font-bold text-white">Physical Evidence & AI Observation</h3>
+          </div>
+          <span class="px-2.5 py-1 rounded-md provenance-ai text-xs font-mono font-semibold">
+            AI_ESTIMATED
+          </span>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <!-- Mock Scan Preview -->
+          <div class="border border-slate-800 rounded-xl bg-slate-950 p-4 flex flex-col items-center justify-center space-y-2 relative">
+            <i class="fa-solid fa-pallet text-slate-600 text-4xl"></i>
+            <span class="text-xs font-mono text-slate-400">weighbridge_intake_nmc622.jpg</span>
+            <span class="text-[10px] text-slate-500 font-mono">SHA-256: 0x9f88...a2c1</span>
+            <div class="absolute top-2 right-2 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
+              25MB Limit OK
+            </div>
+          </div>
+
+          <!-- Observation Metrics -->
+          <div class="space-y-3 text-xs">
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80">
+              <span class="text-slate-400 block mb-1">Detected Units:</span>
+              <span id="ai-detected-units" class="text-base font-bold text-white font-mono">40 Modules (6S2P)</span>
+            </div>
+            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80">
+              <span class="text-slate-400 block mb-1">Observation Confidence:</span>
+              <span id="ai-confidence" class="text-base font-bold text-purple-400 font-mono">96.5%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs text-purple-300">
+          <i class="fa-solid fa-triangle-exclamation mr-1"></i>
+          <strong>Trust Segregation Rule (ADR-001):</strong> AI output provides feature priors and unit counts only. AI NEVER makes the verification decision.
+        </div>
+      </section>
+
+      <!-- Panel 3: Deterministic Mass-Balance Engine -->
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
+              <i class="fa-solid fa-scale-balanced"></i>
+            </div>
+            <h3 class="font-bold text-white">Deterministic Mass-Balance Engine</h3>
+          </div>
+          <span id="mb-verdict-badge" class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold">
+            READY
+          </span>
+        </div>
+
+        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-1">
+          <div class="text-slate-400 font-semibold">// Closed-Form Thermodynamic Equations:</div>
+          <div>M_intake = 1,000.00 kg (MEASURED) | Scale Uncertainty = ±0.5%</div>
+          <div>M_max_allowed = 1,000.00 × 1.005 = 1,005.00 kg</div>
+          <div class="text-emerald-400">Total Claimed Recovered Mass = 541.30 kg (53.86% of Intake) &lt; Ceiling OK</div>
+        </div>
+
+        <div class="space-y-3">
+          <h4 class="text-xs font-semibold text-slate-300">Recovery Yield Envelope Check:</h4>
+          <div class="space-y-2 text-xs">
+            <div>
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Cobalt Recovery (Nominal: 55.8 kg, Max Plausible: 60.3 kg)</span>
+                <span id="mb-co-status" class="font-mono text-emerald-400">55.80 kg (VALID)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div id="mb-co-bar" class="bg-emerald-500 h-2 rounded-full" style="width: 55%"></div>
+              </div>
+            </div>
+            <div>
+              <div class="flex justify-between text-slate-400 mb-1">
+                <span>Nickel Recovery (Nominal: 165.6 kg, Max Plausible: 180.9 kg)</span>
+                <span id="mb-ni-status" class="font-mono text-emerald-400">165.60 kg (VALID)</span>
+              </div>
+              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
+                <div id="mb-ni-bar" class="bg-emerald-500 h-2 rounded-full" style="width: 50%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Panel 4: Local EVM Blockchain Ledger & PoR Certificate -->
+      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
+              <i class="fa-solid fa-certificate"></i>
+            </div>
+            <h3 class="font-bold text-white">Proof-of-Recycling (PoR) & Ledger Anchor</h3>
+          </div>
+          <button onclick="verifyCertificateLive()" id="btn-verify-cert" class="px-2.5 py-1 rounded-lg bg-teal-600/30 hover:bg-teal-600/50 border border-teal-500/30 text-teal-300 text-xs font-mono transition">
+            <i class="fa-solid fa-arrows-rotate mr-1"></i> Verify On-Chain
+          </button>
+        </div>
+
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3 font-mono">
+          <div class="flex justify-between">
+            <span class="text-slate-400">Network:</span>
+            <span class="text-emerald-400 font-bold">LOCAL TESTNET (Chain 31337)</span>
+          </div>
+          <div class="flex justify-between truncate">
+            <span class="text-slate-400">Anchored Commitment:</span>
+            <span id="cert-commitment" class="text-slate-300 truncate max-w-[200px]">0x56a64483713f0449...</span>
+          </div>
+          <div class="flex justify-between truncate">
+            <span class="text-slate-400">Transaction Hash:</span>
+            <span id="cert-tx" class="text-slate-300 truncate max-w-[200px]">0x7b1928cf6a18d...</span>
+          </div>
+          <div class="flex justify-between">
+            <span class="text-slate-400">Certificate ID:</span>
+            <span id="cert-id" class="text-teal-400 font-bold">POR-2026-DEMO-SAMPLE</span>
+          </div>
+        </div>
+
+        <div id="cert-auth-status" class="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
+          <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
+          <span>Cryptographic Anchor Verified: Hashes match local EVM registry state.</span>
+        </div>
+      </section>
+
+    </div>
+  </main>
+
+  <!-- Interactive JavaScript Logic -->
+  <script>
+    async function runScenario(scenario) {
+      const btn = document.getElementById(`btn-scenario-${scenario.toLowerCase()}`);
+      const out = document.getElementById('scenario-output');
+      const title = document.getElementById('scenario-title');
+      const verdict = document.getElementById('scenario-verdict');
+      const stagesDiv = document.getElementById('scenario-stages');
+      const mathDiv = document.getElementById('scenario-math');
+
+      btn.classList.add('opacity-50', 'pointer-events-none');
+      out.classList.remove('hidden');
+      title.innerText = `Executing Scenario ${scenario}...`;
+      verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-300';
+      verdict.innerText = 'PROCESSING';
+      stagesDiv.innerHTML = '<div class="text-xs text-slate-400 col-span-4">Running pipeline across schemas, mass balance, and blockchain...</div>';
+      mathDiv.classList.add('hidden');
+
+      try {
+        const resp = await fetch('/api/v1/demo/run-scenario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: scenario })
+        });
+        const data = await resp.json();
+
+        title.innerText = data.title;
+        verdict.innerText = data.verdict;
+
+        if (data.verdict === 'VERIFIED') {
+          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+          document.getElementById('dpp-state-badge').innerText = 'RECYCLING_VERIFIED';
+          document.getElementById('dpp-state-badge').className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-semibold';
+          document.getElementById('mb-verdict-badge').innerText = 'VALID';
+          document.getElementById('mb-verdict-badge').className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold';
+          if (data.certificate) {
+            document.getElementById('cert-id').innerText = data.certificate.certificate_id;
+            document.getElementById('cert-commitment').innerText = data.certificate.evidence_commitment;
+            document.getElementById('cert-tx').innerText = data.certificate.blockchain_transaction_reference;
+          }
+        } else if (data.verdict === 'CLAIM FLAGGED') {
+          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30';
+          document.getElementById('dpp-state-badge').innerText = 'FLAGGED';
+          document.getElementById('dpp-state-badge').className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-semibold';
+          document.getElementById('mb-verdict-badge').innerText = 'IMPOSSIBLE';
+          document.getElementById('mb-verdict-badge').className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-bold';
+        } else if (data.verdict === 'EVIDENCE_INTEGRITY_FAILURE') {
+          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30';
+          document.getElementById('dpp-state-badge').innerText = 'FLAGGED (TAMPERED)';
+          document.getElementById('dpp-state-badge').className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-semibold';
+          document.getElementById('mb-verdict-badge').innerText = 'INTEGRITY_BREACH';
+          document.getElementById('mb-verdict-badge').className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-bold';
+        } else {
+          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-500/20 text-slate-300 border border-slate-500/30';
+        }
+
+        // Render stage cards
+        stagesDiv.innerHTML = '';
+        data.stages.forEach(st => {
+          const card = document.createElement('div');
+          card.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1';
+          card.innerHTML = `
+            <div class="flex justify-between items-center text-slate-400 font-mono text-[10px]">
+              <span>Stage ${st.stage}</span>
+              <span class="text-emerald-400 font-bold">${st.status}</span>
+            </div>
+            <div class="font-semibold text-slate-200">${st.name}</div>
+            <div class="text-[11px] text-slate-400">${st.details || st.decision || st.tx_hash || ''}</div>
+          `;
+          stagesDiv.appendChild(card);
+        });
+
+        if (data.mathematical_proof) {
+          mathDiv.classList.remove('hidden');
+          mathDiv.innerText = "=== MATHEMATICAL FRAUD PROOF ===\n" + data.mathematical_proof;
+        }
+
+      } catch (err) {
+        title.innerText = 'Execution Failed';
+        verdict.innerText = 'ERROR';
+        verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300';
+        stagesDiv.innerHTML = `<div class="text-rose-400 text-xs font-mono col-span-4">${err.message}</div>`;
+      } finally {
+        btn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    }
+
+    async function verifyCertificateLive() {
+      const certId = document.getElementById('cert-id').innerText;
+      const statusBox = document.getElementById('cert-auth-status');
+      statusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Verifying cryptographic commitments on LOCAL TESTNET...';
+
+      try {
+        const resp = await fetch(`/api/v1/certificates/verify/${certId}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          statusBox.className = 'p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2';
+          statusBox.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Verified! Ledger commit: ${data.evidence_commitment.substring(0, 18)}...`;
+        } else {
+          statusBox.className = 'p-3 rounded-xl bg-amber-950/20 border border-amber-500/20 text-xs text-amber-300 flex items-center gap-2';
+          statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Certificate not yet anchored on-chain. Run Scenario A first.`;
+        }
+      } catch (e) {
+        statusBox.className = 'p-3 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-300 flex items-center gap-2';
+        statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i> Verification failed: ${e.message}`;
+      }
+    }
+  </script>
+</body>
+</html>

@@ -1,0 +1,36 @@
+{
+  "fixture_id": "FIXTURE-FRAUD-ANOMALOUS",
+  "product_id": "DPP-EV-NMC622-2026-M04",
+  "description": "Counterfeit / heavily damaged batch with foreign objects and mismatched density",
+  "provider": "deterministic-replay",
+  "model": "retract-cv-nmc622-v1",
+  "execution_mode": "DETERMINISTIC_FIXTURE",
+  "detected_items": [
+    {
+      "label": "SUSPICIOUS_UNIDENTIFIED_CRATE",
+      "count": 1,
+      "confidence": 0.58,
+      "bounding_box": {
+        "ymin": 0.2,
+        "xmin": 0.2,
+        "ymax": 0.8,
+        "xmax": 0.8
+      }
+    }
+  ],
+  "estimated_item_count": 15,
+  "estimated_gross_mass_kg": 1000.0,
+  "confidence": 0.52,
+  "material_estimates": {
+    "NI": 80.0,
+    "CO": 95.0,
+    "MN": 20.0,
+    "LI": 5.0
+  },
+  "anomaly_flags": [
+    "FOREIGN_OBJECT_DETECTED",
+    "SEVERELY_DAMAGED_CASING",
+    "MISSING_OEM_BARCODE"
+  ],
+  "notes": "Mass distribution inconsistent with certified NMC 622 geometry. Possible scrap dumping."
+}

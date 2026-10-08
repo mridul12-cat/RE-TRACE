@@ -1,0 +1,32 @@
+{
+  "fixture_id": "FIXTURE-SMARTPHONE-LCO-NORMAL",
+  "product_id": "DPP-CONSUMER-LCO-2026-B10",
+  "description": "Crate of 10,000 disassembled Smartphone Li-ion Pouch Cells",
+  "provider": "deterministic-replay",
+  "model": "retract-cv-lco-v1",
+  "execution_mode": "DETERMINISTIC_FIXTURE",
+  "detected_items": [
+    {
+      "label": "SMARTPHONE_LCO_POUCH_CELL",
+      "count": 10000,
+      "confidence": 0.94,
+      "bounding_box": {
+        "ymin": 0.05,
+        "xmin": 0.05,
+        "ymax": 0.95,
+        "xmax": 0.95
+      }
+    }
+  ],
+  "estimated_item_count": 10000,
+  "estimated_gross_mass_kg": 450.0,
+  "confidence": 0.938,
+  "material_estimates": {
+    "CO": 84.6,
+    "LI": 8.42,
+    "CU": 40.6,
+    "AL": 28.35
+  },
+  "anomaly_flags": [],
+  "notes": "Intact pouch cells; standard 3.85V form factor."
+}

@@ -1,0 +1,34 @@
+{
+  "fixture_id": "FIXTURE-EV-NMC622-NORMAL",
+  "product_id": "DPP-EV-NMC622-2026-M04",
+  "description": "Standard pallet of 40 EV Traction Battery Modules (NMC 622, 6S2P)",
+  "provider": "deterministic-replay",
+  "model": "retract-cv-nmc622-v1",
+  "execution_mode": "DETERMINISTIC_FIXTURE",
+  "detected_items": [
+    {
+      "label": "EV_BATTERY_MODULE_6S2P",
+      "count": 40,
+      "confidence": 0.97,
+      "bounding_box": {
+        "ymin": 0.1,
+        "xmin": 0.05,
+        "ymax": 0.9,
+        "xmax": 0.95
+      }
+    }
+  ],
+  "estimated_item_count": 40,
+  "estimated_gross_mass_kg": 1000.0,
+  "confidence": 0.965,
+  "material_estimates": {
+    "NI": 165.6,
+    "CO": 55.8,
+    "MN": 52.8,
+    "LI": 21.0,
+    "CU": 105.3,
+    "AL": 140.8
+  },
+  "anomaly_flags": [],
+  "notes": "Intact cell casing; barcoded labels verified; uniform pallet arrangement."
+}

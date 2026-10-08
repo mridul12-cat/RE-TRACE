@@ -1,0 +1,20 @@
+{
+  "scenario": "A",
+  "title": "Legitimate Industrial EV Battery Recycling",
+  "passport_id": "DPP-EV-NMC622-2026-M04",
+  "product_name": "24V Lithium-Ion EV Traction Battery Module (6S2P)",
+  "category": "INDUSTRIAL_EV_BATTERY",
+  "unit_gross_mass_kg": 25.0,
+  "batch_units": 40,
+  "intake_gross_mass_kg": 1000.0,
+  "evidence_file": "weighbridge_ticket.jpg",
+  "claimed_materials": [
+    {"material_name": "Nickel", "claimed_mass_kg": 165.60, "provenance": "MEASURED", "purity_pct": 99.2},
+    {"material_name": "Cobalt", "claimed_mass_kg": 55.80, "provenance": "MEASURED", "purity_pct": 99.5},
+    {"material_name": "Manganese", "claimed_mass_kg": 52.80, "provenance": "MEASURED", "purity_pct": 98.9},
+    {"material_name": "Lithium", "claimed_mass_kg": 21.00, "provenance": "MEASURED", "purity_pct": 98.8},
+    {"material_name": "Copper", "claimed_mass_kg": 105.30, "provenance": "MEASURED", "purity_pct": 99.8},
+    {"material_name": "Aluminum", "claimed_mass_kg": 140.80, "provenance": "MEASURED", "purity_pct": 99.1}
+  ],
+  "expected_outcome": "VALID -> VERIFIED -> PoR Certificate Issued"
+}

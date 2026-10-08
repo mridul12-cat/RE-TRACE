@@ -1,0 +1,8 @@
+{
+  "scenario": "C",
+  "title": "Adversarial Physical Evidence Tampering Detection",
+  "passport_id": "DPP-EV-NMC622-2026-M04",
+  "anchored_commitment": "0x56a64483713f04495e8e8945ff0337b520d20dff7ec28383a8b2767072558509",
+  "tampering_action": "Modify 1 byte in physical weighbridge file on disk",
+  "expected_outcome": "EVIDENCE_INTEGRITY_FAILURE Flagged Visibly"
+}

@@ -1,0 +1,13 @@
+{
+  "scenario": "B",
+  "title": "Fraudulent Material Claim Exceeding Stoichiometric Ceiling",
+  "passport_id": "DPP-EV-NMC622-2026-M04",
+  "intake_gross_mass_kg": 1000.0,
+  "claimed_materials": [
+    {"material_name": "Cobalt", "claimed_mass_kg": 95.00, "provenance": "MEASURED", "purity_pct": 99.5},
+    {"material_name": "Nickel", "claimed_mass_kg": 165.60, "provenance": "MEASURED", "purity_pct": 99.2}
+  ],
+  "stoichiometric_ceiling_cobalt_kg": 60.30,
+  "excess_cobalt_claimed_kg": 34.70,
+  "expected_outcome": "IMPOSSIBLE -> FLAGGED (Automated Quarantine Enforcement)"
+}

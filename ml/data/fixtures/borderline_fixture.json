@@ -1,0 +1,37 @@
+{
+  "fixture_id": "FIXTURE-BORDERLINE-VAR",
+  "product_id": "DPP-EV-NMC622-2026-M04",
+  "description": "EV Battery module batch with physical debris and non-standard packaging",
+  "provider": "deterministic-replay",
+  "model": "retract-cv-nmc622-v1",
+  "execution_mode": "DETERMINISTIC_FIXTURE",
+  "detected_items": [
+    {
+      "label": "EV_BATTERY_MODULE_6S2P",
+      "count": 40,
+      "confidence": 0.82,
+      "bounding_box": {
+        "ymin": 0.15,
+        "xmin": 0.1,
+        "ymax": 0.85,
+        "xmax": 0.9
+      }
+    }
+  ],
+  "estimated_item_count": 40,
+  "estimated_gross_mass_kg": 1000.0,
+  "confidence": 0.81,
+  "material_estimates": {
+    "NI": 172.0,
+    "CO": 59.5,
+    "MN": 53.0,
+    "LI": 21.0,
+    "CU": 105.0,
+    "AL": 140.0
+  },
+  "anomaly_flags": [
+    "DIRT_ACCUMULATION",
+    "NON_STANDARD_PACKAGING"
+  ],
+  "notes": "Surface contamination detected; estimated tare mass variance +/-3%."
+}

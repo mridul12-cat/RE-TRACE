@@ -1,0 +1,21 @@
+"""
+RE:TRACE Reference Datasets Package.
+"""
+
+from shared.fixtures.reference_materials import (
+    NMC_622_COMPONENTS,
+    EV_BATTERY_NMC_622_COMPOSITION,
+    EV_BATTERY_NMC_622_DPP,
+    LCO_COMPONENTS,
+    SMARTPHONE_LCO_COMPOSITION,
+    SMARTPHONE_LCO_DPP,
+)
+
+__all__ = [
+    "NMC_622_COMPONENTS",
+    "EV_BATTERY_NMC_622_COMPOSITION",
+    "EV_BATTERY_NMC_622_DPP",
+    "LCO_COMPONENTS",
+    "SMARTPHONE_LCO_COMPOSITION",
+    "SMARTPHONE_LCO_DPP",
+]
