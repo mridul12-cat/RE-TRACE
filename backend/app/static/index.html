@@ -406,7 +406,7 @@
             <h2 class="text-xl font-bold text-white flex items-center gap-2">
               <i class="fa-solid fa-id-card text-blue-400"></i> Digital Product Passports (DPP)
             </h2>
-            <p class="text-xs text-slate-400">EU Battery Regulation 2023/1542 conformant product identities and certified Bills of Materials.</p>
+            <p class="text-xs text-slate-400">EU Battery Regulation 2023/1542 reference architecture & data model with baseline Bills of Materials.</p>
           </div>
           <div class="flex items-center gap-2">
             <button type="button" onclick="cvResetDemoPassports()" class="px-3 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-xs font-mono border border-amber-500/30 transition flex items-center gap-1.5">
@@ -487,7 +487,7 @@
               <!-- Certified Bill of Materials (BoM) Table -->
               <div class="space-y-2">
                 <div class="flex items-center justify-between text-xs">
-                  <span class="font-semibold text-slate-300">Certified Bill of Materials (EU Reg 2023/1542)</span>
+                  <span class="font-semibold text-slate-300">Reference Bill of Materials (EU Reg 2023/1542 Model)</span>
                   <span class="px-2 py-0.5 rounded provenance-assumed text-[10px] font-mono">REFERENCE_ASSUMED</span>
                 </div>
                 <div class="overflow-x-auto border border-slate-800 rounded-xl">
@@ -668,11 +668,11 @@
               </span>
               <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
                 <div>
-                  <label class="block text-slate-400 text-[11px] mb-1">Provenance</label>
+                  <label class="block text-slate-400 text-[11px] mb-1">Evidence Artifact Provenance</label>
                   <select id="cv-upload-prov" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
-                    <option value="OBSERVED" selected>OBSERVED (Operator Photo)</option>
-                    <option value="MEASURED">MEASURED (Direct Scale Ticket)</option>
-                    <option value="SIMULATED">SIMULATED (Synthetic Test)</option>
+                    <option value="OBSERVED" selected>OBSERVED (Operator Upload / Document Artifact)</option>
+                    <option value="MEASURED">MEASURED (Direct Sensor / Telemetry Stream)</option>
+                    <option value="SIMULATED">SIMULATED (Synthetic Test Fixture)</option>
                   </select>
                 </div>
                 <div>
@@ -916,7 +916,7 @@
           <!-- Verified Quantities Table (If Certificate Issued) -->
           <div id="cv-res-cert-details-card" class="hidden p-4 rounded-xl bg-slate-950 border border-teal-500/30 space-y-2 text-xs font-mono">
             <div class="flex items-center justify-between text-teal-400 font-bold">
-              <span>Verified Material Quantities (EU Battery Regulation 2023/1542)</span>
+              <span>Verified Material Quantities (EU Battery Regulation 2023/1542 Framework)</span>
               <span class="text-[10px] font-normal text-slate-400">Recovered Yields Calculated</span>
             </div>
             <div class="overflow-x-auto border border-slate-800 rounded-lg">
@@ -1131,7 +1131,7 @@
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <i class="fa-solid fa-certificate text-teal-400"></i> Proof-of-Recycling (PoR) Verification
               </span>
-              <span class="text-[10px] font-mono text-teal-300">EU Compliant</span>
+              <span class="text-[10px] font-mono text-teal-300">DPP INTEROPERABILITY</span>
             </div>
 
             <div class="flex gap-2">
@@ -1661,7 +1661,10 @@
 
       // Check eligibility
       if (state === 'RECYCLING_PENDING') {
-        if (stateBadge) stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        if (stateBadge) {
+          stateBadge.textContent = state;
+          stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        }
         if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300';
         if (alertText) alertText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i><strong>Eligible for Recycling Verification:</strong> Lifecycle state is RECYCLING_PENDING.';
         if (advanceBtn) advanceBtn.classList.add('hidden');
@@ -1669,8 +1672,35 @@
           submitBtn.disabled = false;
           submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
         }
+      } else if (state === 'FLAGGED') {
+        if (stateBadge) {
+          stateBadge.textContent = 'FLAGGED (QUARANTINED)';
+          stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
+        }
+        if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-rose-950/40 border border-rose-500/30 text-rose-300';
+        if (alertText) alertText.innerHTML = '<i class="fa-solid fa-ban text-rose-400 mr-1.5"></i><strong>Quarantine Active:</strong> Passport is <code class="font-bold">FLAGGED</code>. Quarantined products cannot be submitted for verification without formal auditor resolution.';
+        if (advanceBtn) advanceBtn.classList.add('hidden');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        }
+      } else if (state === 'RECYCLING_VERIFIED') {
+        if (stateBadge) {
+          stateBadge.textContent = 'RECYCLING_VERIFIED (COMPLETED)';
+          stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30';
+        }
+        if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-teal-950/40 border border-teal-500/30 text-teal-300';
+        if (alertText) alertText.innerHTML = '<i class="fa-solid fa-lock text-teal-400 mr-1.5"></i><strong>Already Verified:</strong> Recycling is already verified and anchored on-chain. Protected against duplicate processing.';
+        if (advanceBtn) advanceBtn.classList.add('hidden');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        }
       } else {
-        if (stateBadge) stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        if (stateBadge) {
+          stateBadge.textContent = state;
+          stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        }
         if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-amber-950/40 border border-amber-500/30 text-amber-300';
         if (alertText) alertText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1.5"></i><strong>Lifecycle Ineligible:</strong> Currently in <code class="font-bold">${state}</code>. Verification requires <code class="font-bold">RECYCLING_PENDING</code>.`;
         if (advanceBtn) advanceBtn.classList.remove('hidden');
@@ -1707,8 +1737,14 @@
       const pid = _cvSelectedPassport.passport_id;
       const curState = _cvSelectedPassport.current_lifecycle_state;
 
+      // Preserve FLAGGED quarantine and RECYCLING_VERIFIED protection:
+      // only standard pre-recycling stages may be transitioned
+      if (curState === 'FLAGGED' || curState === 'RECYCLING_VERIFIED') {
+        alert(`Cannot auto-advance passport in state '${curState}'. Lifecycle protection is active.`);
+        return;
+      }
+
       const pathRoles = [
-        { from: 'FLAGGED', to: 'RETURNED', role: 'AUDITOR' },
         { from: 'MANUFACTURED', to: 'IN_USE', role: 'MANUFACTURER' },
         { from: 'IN_USE', to: 'RETURNED', role: 'COLLECTION_AGENT' },
         { from: 'RETURNED', to: 'RECYCLING_PENDING', role: 'RECYCLER' }
@@ -1895,7 +1931,7 @@
     }
 
     async function cvGenerateSampleEvidence() {
-      const prov = document.getElementById('cv-upload-prov').value;
+      const prov = document.getElementById('cv-upload-prov').value || 'OBSERVED';
       const header = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]);
       const body = new TextEncoder().encode("SAMPLE_WEIGHBRIDGE_INSPECTION_SLIP_" + Date.now());
       const full = new Uint8Array(header.length + body.length);
@@ -1906,7 +1942,7 @@
       const fd = new FormData();
       fd.append('file', blob, `weighbridge_slip_${Date.now()}.jpg`);
       fd.append('provenance_category', prov);
-      fd.append('description', 'Automated facility test scale receipt slip');
+      fd.append('description', 'Weighbridge scale ticket recording physical gross mass (MEASURED representation)');
 
       try {
         const resp = await fetch('/api/v1/evidence/upload', {
@@ -1938,6 +1974,7 @@
         const provBadgeClass = f.provenance === 'MEASURED'
           ? 'provenance-measured'
           : (f.provenance === 'SIMULATED' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold' : 'provenance-observed');
+        const isScaleSlip = (f.filename && (f.filename.includes('slip') || f.filename.includes('ticket') || f.filename.includes('scale'))) || (f.description && f.description.toLowerCase().includes('scale'));
         div.innerHTML = `
           <div class="truncate space-y-0.5">
             <div class="font-medium text-slate-200 truncate flex items-center gap-1.5">
@@ -1949,9 +1986,12 @@
             <div class="text-[10px] font-mono text-slate-500 truncate">
               SHA-256: 0x${f.sha256_hash.substring(0, 16)}... | ${(f.file_size_bytes / 1024).toFixed(1)} KB
             </div>
+            <div class="text-[10px] font-mono text-slate-400 flex items-center gap-1.5 pt-0.5">
+              <span>Artifact Provenance: <span class="px-1.5 py-0.2 rounded ${provBadgeClass}">${f.provenance}</span></span>
+              ${isScaleSlip ? `<span class="text-slate-600">|</span><span>Measurement Represented: <span class="text-sky-300 font-semibold">MEASURED (Scale Ticket)</span></span>` : ''}
+            </div>
           </div>
           <div class="flex items-center gap-2">
-            <span class="px-2 py-0.5 rounded text-[10px] font-mono ${provBadgeClass}">${f.provenance}</span>
             <button type="button" onclick="cvRemoveUploadedFile(${idx})" class="text-slate-500 hover:text-rose-400 text-xs">
               <i class="fa-solid fa-xmark"></i>
             </button>
@@ -2254,25 +2294,116 @@ ${concise}`;
         if (data.ai_observation) {
           aiCard.classList.remove('hidden');
           const obs = data.ai_observation;
-          if (aiBadge) {
-            aiBadge.textContent = obs.execution_mode === 'SIMULATED' ? 'SIMULATED / DETERMINISTIC FIXTURE' : (obs.execution_mode === 'LIVE' ? 'LIVE GEMINI' : 'AI_ESTIMATED');
-            aiBadge.className = obs.execution_mode === 'SIMULATED'
-              ? 'px-2 py-0.5 rounded font-mono text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-bold'
-              : 'px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold';
-          }
-          aiDetails.innerHTML = `
-            <div><strong>Execution Mode:</strong> ${obs.execution_mode === 'SIMULATED' ? 'SIMULATED / DETERMINISTIC FIXTURE' : 'LIVE GEMINI'}</div>
-            <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
-            <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] ${obs.execution_mode === 'SIMULATED' ? 'bg-slate-800 text-slate-300' : 'bg-purple-950/60 text-purple-300'} font-mono">${obs.execution_mode === 'SIMULATED' ? 'SIMULATED' : 'AI_ESTIMATED'}</span></div>
-            <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
-            <div class="text-purple-300/90 pt-1 font-semibold">AI observes evidence; deterministic verification makes the decision.</div>
-          `;
+          const requestedMode = data.ai_requested_mode || (document.getElementById('cv-ai-force-mode')?.value || 'DETERMINISTIC_FIXTURE');
+          const isFallback = Boolean(
+            data.ai_fallback_occurred ||
+            (requestedMode === 'LIVE_GEMINI' && (obs.provider === 'deterministic-replay' || obs.execution_mode === 'DETERMINISTIC_FIXTURE')) ||
+            (obs.notes && obs.notes.includes('Fallback from LIVE_GEMINI'))
+          );
+          const isLiveGemini = !isFallback && obs.execution_mode === 'LIVE_GEMINI' && obs.provider === 'google-gemini';
 
-          // Synchronize to Evidence & AI tab
-          document.getElementById('ai-audit-model').textContent = `${obs.provider} (${obs.model})`;
-          document.getElementById('ai-audit-units').textContent = `${obs.estimated_item_count} Units`;
-          document.getElementById('ai-audit-conf').textContent = `${(obs.confidence * 100).toFixed(1)}%`;
-          document.getElementById('ai-audit-prov').textContent = obs.execution_mode === 'SIMULATED' ? 'SIMULATED' : 'AI_ESTIMATED';
+          if (isFallback) {
+            // Case C: Gemini requested but fallback occurred
+            const fallbackReason = data.ai_fallback_reason || (obs.notes && obs.notes.includes('Fallback from LIVE_GEMINI') ? obs.notes : 'Live Gemini API unavailable or credentials not set; degraded to deterministic fixture.');
+            if (aiBadge) {
+              aiBadge.textContent = 'FALLBACK (DETERMINISTIC FIXTURE)';
+              aiBadge.className = 'px-2 py-0.5 rounded font-mono text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
+            }
+            aiDetails.innerHTML = `
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 pb-1 border-b border-slate-800/80">
+                <div><strong>REQUESTED MODE:</strong> <span class="text-purple-300 font-bold">LIVE GEMINI</span></div>
+                <div><strong>ACTUAL MODE:</strong> <span class="text-amber-300 font-bold">DETERMINISTIC FIXTURE</span></div>
+              </div>
+              <div class="flex items-center gap-2 pt-0.5">
+                <strong>STATUS:</strong>
+                <span class="px-1.5 py-0.2 rounded text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold">FALLBACK</span>
+              </div>
+              <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
+              <div><strong>Fallback Reason:</strong> <span class="text-slate-400 font-mono text-[11px]">${fallbackReason}</span></div>
+              <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">AI_ESTIMATED (Simulated Fixture Telemetry)</span></div>
+              <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
+              <div class="text-amber-300/90 pt-1 font-semibold text-[11px]">
+                <i class="fa-solid fa-triangle-exclamation mr-1"></i>Fallback active: replayed deterministic fixture. No external Gemini inference occurred. AI observes evidence; deterministic verification makes the decision.
+              </div>
+            `;
+
+            // Synchronize to Evidence & AI tab
+            const auditModel = document.getElementById('ai-audit-model');
+            const auditUnits = document.getElementById('ai-audit-units');
+            const auditConf = document.getElementById('ai-audit-conf');
+            const auditProv = document.getElementById('ai-audit-prov');
+            const auditModeBadge = document.getElementById('ai-audit-mode-badge');
+            if (auditModel) auditModel.textContent = `${obs.provider} (${obs.model}) [FALLBACK]`;
+            if (auditUnits) auditUnits.textContent = `${obs.estimated_item_count} Units`;
+            if (auditConf) auditConf.textContent = `${(obs.confidence * 100).toFixed(1)}%`;
+            if (auditProv) auditProv.textContent = 'AI_ESTIMATED (SIMULATED FIXTURE)';
+            if (auditModeBadge) {
+              auditModeBadge.textContent = 'FALLBACK (FIXTURE)';
+              auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-500/30 font-bold';
+            }
+
+          } else if (isLiveGemini) {
+            // Case A: Actual Gemini response
+            if (aiBadge) {
+              aiBadge.textContent = 'LIVE GEMINI';
+              aiBadge.className = 'px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold';
+            }
+            aiDetails.innerHTML = `
+              <div><strong>Execution Mode:</strong> <span class="text-purple-300 font-bold">LIVE GEMINI</span></div>
+              <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
+              <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-purple-950/60 text-purple-300 font-mono">AI_ESTIMATED</span></div>
+              <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
+              <div class="text-purple-300/90 pt-1 font-semibold text-[11px]">
+                Live multimodal inference completed via Google Gemini. AI observes evidence; deterministic verification makes the decision.
+              </div>
+            `;
+
+            // Synchronize to Evidence & AI tab
+            const auditModel = document.getElementById('ai-audit-model');
+            const auditUnits = document.getElementById('ai-audit-units');
+            const auditConf = document.getElementById('ai-audit-conf');
+            const auditProv = document.getElementById('ai-audit-prov');
+            const auditModeBadge = document.getElementById('ai-audit-mode-badge');
+            if (auditModel) auditModel.textContent = `${obs.provider} (${obs.model})`;
+            if (auditUnits) auditUnits.textContent = `${obs.estimated_item_count} Units`;
+            if (auditConf) auditConf.textContent = `${(obs.confidence * 100).toFixed(1)}%`;
+            if (auditProv) auditProv.textContent = 'AI_ESTIMATED';
+            if (auditModeBadge) {
+              auditModeBadge.textContent = 'LIVE GEMINI';
+              auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-500/30 font-bold';
+            }
+
+          } else {
+            // Case B: Deterministic fixture (explicitly selected and executed)
+            if (aiBadge) {
+              aiBadge.textContent = 'DETERMINISTIC FIXTURE';
+              aiBadge.className = 'px-2 py-0.5 rounded font-mono text-[10px] bg-slate-800 text-slate-300 border border-slate-700 font-bold';
+            }
+            aiDetails.innerHTML = `
+              <div><strong>Execution Mode:</strong> <span class="text-slate-300 font-bold">DETERMINISTIC FIXTURE</span></div>
+              <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
+              <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">AI_ESTIMATED (Simulated Fixture Telemetry)</span></div>
+              <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
+              <div class="text-slate-400 pt-1 font-semibold text-[11px]">
+                Deterministic offline telemetry replayed. No external Gemini inference occurred. AI observes evidence; deterministic verification makes the decision.
+              </div>
+            `;
+
+            // Synchronize to Evidence & AI tab
+            const auditModel = document.getElementById('ai-audit-model');
+            const auditUnits = document.getElementById('ai-audit-units');
+            const auditConf = document.getElementById('ai-audit-conf');
+            const auditProv = document.getElementById('ai-audit-prov');
+            const auditModeBadge = document.getElementById('ai-audit-mode-badge');
+            if (auditModel) auditModel.textContent = `${obs.provider} (${obs.model})`;
+            if (auditUnits) auditUnits.textContent = `${obs.estimated_item_count} Units`;
+            if (auditConf) auditConf.textContent = `${(obs.confidence * 100).toFixed(1)}%`;
+            if (auditProv) auditProv.textContent = 'AI_ESTIMATED (SIMULATED FIXTURE)';
+            if (auditModeBadge) {
+              auditModeBadge.textContent = 'DETERMINISTIC FIXTURE';
+              auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-bold';
+            }
+          }
         } else {
           aiCard.classList.add('hidden');
         }
@@ -2355,15 +2486,19 @@ Status: ${data.status}`);
       if (countBadge) countBadge.textContent = `${_cvUploadedFiles.length} File${_cvUploadedFiles.length > 1 ? 's' : ''}`;
       container.innerHTML = '';
       _cvUploadedFiles.forEach(f => {
+        const isScaleSlip = (f.filename && (f.filename.includes('slip') || f.filename.includes('ticket') || f.filename.includes('scale'))) || (f.description && f.description.toLowerCase().includes('scale'));
         const div = document.createElement('div');
         div.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1';
         div.innerHTML = `
           <div class="flex justify-between items-center text-slate-300 font-mono">
             <span class="font-bold text-white flex items-center gap-1.5"><i class="fa-solid fa-file-image text-purple-400"></i> ${f.filename}</span>
-            <span class="px-2 py-0.5 rounded text-[10px] ${f.provenance === 'MEASURED' ? 'provenance-measured' : (f.provenance === 'SIMULATED' ? 'provenance-simulated' : 'provenance-observed')}">${f.provenance}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] ${f.provenance === 'MEASURED' ? 'provenance-measured' : (f.provenance === 'SIMULATED' ? 'provenance-simulated' : 'provenance-observed')}">Artifact: ${f.provenance}</span>
           </div>
           <div class="text-[10px] font-mono text-slate-500">ID: ${f.file_id} | ${(f.file_size_bytes / 1024).toFixed(1)} KB</div>
           <div class="text-[10px] font-mono text-slate-400 truncate">SHA-256: 0x${f.sha256_hash}</div>
+          <div class="text-[10px] font-mono text-slate-400 pt-0.5">
+            Measurement Represented: <span class="text-sky-300 font-bold">${isScaleSlip ? 'MEASURED (Physical Weighbridge Scale Reading)' : 'OBSERVED / OPERATOR RECORD'}</span>
+          </div>
         `;
         container.appendChild(div);
       });

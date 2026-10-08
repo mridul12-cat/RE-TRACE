@@ -242,6 +242,9 @@ class CustomVerificationService:
         ai_result: Optional[AIObservationResult] = None
         ai_inference_obs: Optional[AIInferenceObservation] = None
         ai_notice: Optional[str] = None
+        ai_requested_mode: Optional[str] = (ai_force_mode or "DETERMINISTIC_FIXTURE") if run_ai_observation else None
+        ai_fallback_occurred: bool = False
+        ai_fallback_reason: Optional[str] = None
 
         if run_ai_observation:
             target_ai_fid = ai_file_id if (ai_file_id and ai_file_id in clean_evidence_ids) else clean_evidence_ids[0]
@@ -271,9 +274,24 @@ class CustomVerificationService:
                         "AI observes evidence; deterministic verification makes the decision. "
                         "Material estimation used as contextual prior only."
                     )
+
+                    # Check for fallback truthfulness
+                    if (ai_force_mode == "LIVE_GEMINI") and (ai_result.execution_mode == "DETERMINISTIC_FIXTURE" or ai_result.provider == "deterministic-replay"):
+                        ai_fallback_occurred = True
+                        if ai_result.notes and "Fallback from LIVE_GEMINI:" in ai_result.notes:
+                            match = re.search(r"\[Fallback from LIVE_GEMINI:\s*([^\]]+)\]", ai_result.notes)
+                            if match:
+                                ai_fallback_reason = match.group(1).strip()
+                            else:
+                                ai_fallback_reason = ai_result.notes
+                        else:
+                            ai_fallback_reason = "Live Gemini service unavailable or credentials not configured; degraded to deterministic fixture."
             except Exception as e:
                 logger.warning(f"AI observation failed/unavailable: {e}. Gracefully continuing deterministic verification.")
                 ai_notice = f"AI observation unavailable ({str(e)}). Deterministic verification proceeded without AI observation."
+                if ai_force_mode == "LIVE_GEMINI":
+                    ai_fallback_occurred = True
+                    ai_fallback_reason = str(e)
         else:
             ai_notice = "AI observation skipped by user. Deterministic verification executed directly."
 
@@ -527,6 +545,9 @@ class CustomVerificationService:
             "certificate_block_reason": certificate_block_reason,
             "ai_observation": ai_result,
             "ai_notice": ai_notice,
+            "ai_requested_mode": ai_requested_mode,
+            "ai_fallback_occurred": ai_fallback_occurred,
+            "ai_fallback_reason": ai_fallback_reason,
         }
 
 

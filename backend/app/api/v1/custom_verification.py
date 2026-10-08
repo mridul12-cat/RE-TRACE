@@ -116,6 +116,9 @@ class CustomVerificationResponse(BaseModel):
     ai_notice: Optional[str] = None
     claims_breakdown: Optional[List[ClaimBreakdownItem]] = None
     concise_explanation: Optional[str] = None
+    ai_requested_mode: Optional[str] = None
+    ai_fallback_occurred: bool = False
+    ai_fallback_reason: Optional[str] = None
 
 
 @router.post(

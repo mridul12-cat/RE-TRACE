@@ -782,6 +782,158 @@ class TestCustomVerificationWorkflow(unittest.TestCase):
         self.assertEqual(sorted_passports[0]["current_lifecycle_state"], "RECYCLING_PENDING")
         self.assertEqual(sorted_passports[0]["passport_id"], "DPP-EV-NMC622-2026-M04")
 
+    # -------------------------------------------------------------------------
+    # 22. AI execution mode truthfulness mapping & fallback detection
+    # -------------------------------------------------------------------------
+    def test_22_ai_execution_mode_truthfulness_mapping(self):
+        """Test 22: UI and backend derive AI mode truthfully; never label deterministic fixture as LIVE_GEMINI."""
+        from unittest.mock import patch
+        from ml.models.vision_schemas import AIObservationResult, DetectedItem
+        from shared.schemas.provenance import ProvenanceCategory
+
+        fid = self._upload_test_image("ai_truth")
+
+        # 1. Deterministic fixture requested -> deterministic fixture executed
+        pid1 = self._create_and_prep_passport("DPP-AI-FIXTURE")
+        req1 = {
+            "passport_id": pid1,
+            "intake_gross_mass_kg": 25.0,
+            "claimed_materials": [
+                {"material_name": "Nickel", "claimed_mass_kg": 4.14, "purity_pct": 99.0, "provenance": "OBSERVED"},
+            ],
+            "evidence_file_ids": [fid],
+            "run_ai_observation": True,
+            "ai_force_mode": "DETERMINISTIC_FIXTURE",
+        }
+        res1 = self.client.post("/api/v1/custom-verification/verify", json=req1)
+        self.assertEqual(res1.status_code, 200)
+        data1 = res1.json()
+        self.assertIsNotNone(data1.get("ai_observation"))
+        obs1 = data1["ai_observation"]
+        self.assertEqual(obs1["execution_mode"], "DETERMINISTIC_FIXTURE")
+        self.assertEqual(obs1["provider"], "deterministic-replay")
+        self.assertFalse(data1.get("ai_fallback_occurred"))
+        self.assertEqual(data1.get("ai_requested_mode"), "DETERMINISTIC_FIXTURE")
+
+        # 2. Live Gemini requested in test environment (no API key) -> Fallback occurs
+        pid2 = self._create_and_prep_passport("DPP-AI-FALLBACK")
+        req2 = {
+            "passport_id": pid2,
+            "intake_gross_mass_kg": 25.0,
+            "claimed_materials": [
+                {"material_name": "Nickel", "claimed_mass_kg": 4.14, "purity_pct": 99.0, "provenance": "OBSERVED"},
+            ],
+            "evidence_file_ids": [fid],
+            "run_ai_observation": True,
+            "ai_force_mode": "LIVE_GEMINI",
+        }
+        res2 = self.client.post("/api/v1/custom-verification/verify", json=req2)
+        self.assertEqual(res2.status_code, 200)
+        data2 = res2.json()
+        self.assertIsNotNone(data2.get("ai_observation"))
+        obs2 = data2["ai_observation"]
+        # Crucial truthfulness requirement: actual mode is DETERMINISTIC_FIXTURE, NOT LIVE_GEMINI
+        self.assertEqual(obs2["execution_mode"], "DETERMINISTIC_FIXTURE")
+        self.assertEqual(obs2["provider"], "deterministic-replay")
+        self.assertTrue(data2.get("ai_fallback_occurred"))
+        self.assertEqual(data2.get("ai_requested_mode"), "LIVE_GEMINI")
+        self.assertIsNotNone(data2.get("ai_fallback_reason"))
+        self.assertIn("GEMINI_API_KEY", data2.get("ai_fallback_reason", "") or obs2.get("notes", ""))
+
+        # 3. Simulated true Gemini response (mocked) -> LIVE_GEMINI returned
+        pid3 = self._create_and_prep_passport("DPP-AI-LIVE")
+        mock_gemini_obs = AIObservationResult(
+            provider="google-gemini",
+            model="gemini-2.5-flash",
+            execution_mode="LIVE_GEMINI",
+            inference_timestamp=datetime.now(timezone.utc),
+            detected_items=[DetectedItem(label="EV_BATTERY_MODULE_6S2P", count=1, confidence=0.98)],
+            material_estimates={"Nickel": 4.14, "Cobalt": 1.40},
+            estimated_item_count=1,
+            estimated_gross_mass_kg=25.0,
+            confidence=0.98,
+            anomaly_flags=[],
+            provenance_category=ProvenanceCategory.AI_ESTIMATED,
+            notes="Live multimodal inspection succeeded."
+        )
+        req3 = {
+            "passport_id": pid3,
+            "intake_gross_mass_kg": 25.0,
+            "claimed_materials": [
+                {"material_name": "Nickel", "claimed_mass_kg": 4.14, "purity_pct": 99.0, "provenance": "OBSERVED"},
+            ],
+            "evidence_file_ids": [fid],
+            "run_ai_observation": True,
+            "ai_force_mode": "LIVE_GEMINI",
+        }
+        with patch("backend.app.api.v1.ai.ai_service.observe", return_value=mock_gemini_obs):
+            res3 = self.client.post("/api/v1/custom-verification/verify", json=req3)
+            self.assertEqual(res3.status_code, 200)
+            data3 = res3.json()
+            self.assertIsNotNone(data3.get("ai_observation"))
+            obs3 = data3["ai_observation"]
+            self.assertEqual(obs3["execution_mode"], "LIVE_GEMINI")
+            self.assertEqual(obs3["provider"], "google-gemini")
+            self.assertEqual(obs3["model"], "gemini-2.5-flash")
+            self.assertFalse(data3.get("ai_fallback_occurred"))
+            self.assertEqual(data3.get("ai_requested_mode"), "LIVE_GEMINI")
+
+    # -------------------------------------------------------------------------
+    # 23. Removal of unsupported regulatory claims
+    # -------------------------------------------------------------------------
+    def test_23_unsupported_regulatory_claims_removed(self):
+        """Test 23: Dashboard HTML contains no unsubstantiated 'EU Compliant' claims and uses 'DPP INTEROPERABILITY'."""
+        import os
+        html_path = os.path.join("backend", "app", "static", "index.html")
+        self.assertTrue(os.path.exists(html_path))
+        with open(html_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+
+        self.assertNotIn("EU Compliant", html_content, "The phrase 'EU Compliant' must be removed from dashboard UI")
+        self.assertIn("DPP INTEROPERABILITY", html_content, "'DPP INTEROPERABILITY' must be present in Blockchain & PoR module")
+
+    # -------------------------------------------------------------------------
+    # 24. Preservation of FLAGGED quarantine and RECYCLING_VERIFIED protection
+    # -------------------------------------------------------------------------
+    def test_24_quarantine_and_verified_protections(self):
+        """Test 24: FLAGGED and RECYCLING_VERIFIED passports cannot be verified without legal resolution."""
+        fid = self._upload_test_image("lifecycle_prot")
+
+        # 1. FLAGGED Passport rejection
+        pid_flagged = self._create_and_prep_passport("DPP-FLAGGED-PROT")
+        # Flag the passport using authorized auditor role
+        blockchain_service.transition_state(pid_flagged, LifecycleState.FLAGGED, AuthorizedRole.AUDITOR)
+        self.assertEqual(blockchain_service.get_lifecycle_state(pid_flagged), LifecycleState.FLAGGED)
+
+        req_flagged = {
+            "passport_id": pid_flagged,
+            "intake_gross_mass_kg": 25.0,
+            "claimed_materials": [{"material_name": "Nickel", "claimed_mass_kg": 4.14, "purity_pct": 99.0}],
+            "evidence_file_ids": [fid]
+        }
+        res_flagged = self.client.post("/api/v1/custom-verification/verify", json=req_flagged)
+        self.assertEqual(res_flagged.status_code, 400)
+        self.assertIn("FLAGGED", res_flagged.json().get("message", ""))
+        # Verify state was not mutated
+        self.assertEqual(blockchain_service.get_lifecycle_state(pid_flagged), LifecycleState.FLAGGED)
+
+        # 2. RECYCLING_VERIFIED Passport rejection
+        pid_verified = self._create_and_prep_passport("DPP-VERIFIED-PROT")
+        blockchain_service.transition_state(pid_verified, LifecycleState.RECYCLING_VERIFIED, AuthorizedRole.VERIFIER_SERVICE)
+        self.assertEqual(blockchain_service.get_lifecycle_state(pid_verified), LifecycleState.RECYCLING_VERIFIED)
+
+        req_verified = {
+            "passport_id": pid_verified,
+            "intake_gross_mass_kg": 25.0,
+            "claimed_materials": [{"material_name": "Nickel", "claimed_mass_kg": 4.14, "purity_pct": 99.0}],
+            "evidence_file_ids": [fid]
+        }
+        res_verified = self.client.post("/api/v1/custom-verification/verify", json=req_verified)
+        self.assertEqual(res_verified.status_code, 400)
+        self.assertIn("RECYCLING_VERIFIED", res_verified.json().get("message", ""))
+        # Verify state was not mutated
+        self.assertEqual(blockchain_service.get_lifecycle_state(pid_verified), LifecycleState.RECYCLING_VERIFIED)
+
 
 if __name__ == "__main__":
     unittest.main()
