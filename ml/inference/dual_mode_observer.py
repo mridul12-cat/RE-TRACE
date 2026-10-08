@@ -69,7 +69,8 @@ class DualModeAIObservationService:
     ):
         self.default_mode = default_mode.upper()
         self.api_key = api_key or os.getenv("GEMINI_API_KEY")
-        self.model = model or os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        self._explicit_model = model
+        self.model = model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
         self._cached_fixtures: Dict[str, Dict[str, Any]] = {}
         self._load_fixtures()
 
@@ -80,11 +81,18 @@ class DualModeAIObservationService:
 
     @property
     def current_model(self) -> str:
-        """Resolves active Gemini model identifier from instance or environment."""
-        raw_model = os.getenv("GEMINI_MODEL") or self.model or "gemini-2.5-flash"
+        """Resolves active Gemini model identifier from environment, instance, or default."""
+        env_model = os.getenv("GEMINI_MODEL")
+        if env_model and env_model.strip():
+            raw_model = env_model.strip()
+        elif self._explicit_model and self._explicit_model.strip():
+            raw_model = self._explicit_model.strip()
+        else:
+            raw_model = (self.model or "gemini-3.8-flash").strip()
+
         if raw_model.startswith("models/"):
-            return raw_model[len("models/"):]
-        return raw_model
+            raw_model = raw_model[len("models/"):].strip()
+        return raw_model or "gemini-3.8-flash"
 
     def _load_fixtures(self):
         if not FIXTURES_DIR.exists():
@@ -258,7 +266,7 @@ class DualModeAIObservationService:
         import urllib.request
         import urllib.error
 
-        api_key = self.current_api_key
+        api_key = (self.current_api_key or "").strip()
         if not api_key:
             raise GeminiNotConfiguredError(
                 "GEMINI_NOT_CONFIGURED: GEMINI_API_KEY environment variable is not set."
@@ -267,13 +275,23 @@ class DualModeAIObservationService:
         clean_model = self.current_model
         url = f"https://generativelanguage.googleapis.com/v1beta/models/{clean_model}:generateContent"
 
-        # Sanitize payload: strip any test-compatibility aliases before network serialization
+        # Sanitize payload: normalize any inline_data aliases to Google REST inlineData format
         outbound_payload = json.loads(json.dumps(payload))
         try:
             for c in outbound_payload.get("contents", []):
                 for p in c.get("parts", []):
-                    if "inlineData" in p and "inline_data" in p:
+                    if "inline_data" in p:
+                        if "inlineData" not in p:
+                            id_data = p["inline_data"]
+                            p["inlineData"] = {
+                                "mimeType": id_data.get("mimeType") or id_data.get("mime_type"),
+                                "data": id_data.get("data")
+                            }
                         del p["inline_data"]
+                    if "inlineData" in p:
+                        id_data = p["inlineData"]
+                        if "mime_type" in id_data and "mimeType" not in id_data:
+                            id_data["mimeType"] = id_data.pop("mime_type")
         except Exception:
             pass
 
@@ -296,7 +314,7 @@ class DualModeAIObservationService:
             code = http_err.code
             try:
                 err_body = http_err.read().decode("utf-8", errors="ignore")
-                if api_key in err_body:
+                if api_key and api_key in err_body:
                     err_body = err_body.replace(api_key, "[REDACTED]")
             except Exception:
                 err_body = ""
@@ -313,18 +331,64 @@ class DualModeAIObservationService:
                 raise GeminiInvalidResponseError(
                     f"GEMINI_INVALID_RESPONSE: Google Gemini rejected request payload (HTTP 400): {err_body[:120]}."
                 ) from http_err
+            elif code == 404:
+                body_suffix = f": {err_body[:160]}" if err_body else ""
+                raise GeminiUnavailableError(
+                    f"GEMINI_UNAVAILABLE: Configured Gemini model '{clean_model}' was not found or is unavailable (HTTP 404){body_suffix}."
+                ) from http_err
             elif code in (500, 502, 503, 504):
                 raise GeminiUnavailableError(
                     f"GEMINI_UNAVAILABLE: Google Gemini API is temporarily unavailable (HTTP {code})."
                 ) from http_err
             else:
+                body_suffix = f": {err_body[:160]}" if err_body else ""
                 raise GeminiUnavailableError(
-                    f"GEMINI_UNAVAILABLE: Unexpected response from Gemini API (HTTP {code})."
+                    f"GEMINI_UNAVAILABLE: Unexpected response from Gemini API (HTTP {code}){body_suffix}."
                 ) from http_err
         except (urllib.error.URLError, TimeoutError, OSError) as net_err:
             raise GeminiUnavailableError(
                 f"GEMINI_UNAVAILABLE: Connection failure or timeout contacting Gemini API: {type(net_err).__name__}."
             ) from net_err
+
+    def request_text(self, prompt: str) -> str:
+        """
+        Executes a minimal text-only Gemini request using the configured model.
+        Useful for connectivity verification, health-checks, and minimal testing.
+        """
+        payload = {
+            "contents": [
+                {
+                    "parts": [{"text": prompt}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": 0.1,
+            }
+        }
+        resp = self._call_gemini_api(payload)
+        candidates = resp.get("candidates", [])
+        if not candidates:
+            feedback = resp.get("promptFeedback", {})
+            raise GeminiInvalidResponseError(
+                f"GEMINI_INVALID_RESPONSE: No candidate returned by Gemini API (feedback: {feedback})."
+            )
+        cand = candidates[0]
+        finish_reason = cand.get("finishReason")
+        if finish_reason and finish_reason in ("SAFETY", "RECITATION", "BLOCKLIST"):
+            raise GeminiInvalidResponseError(
+                f"GEMINI_INVALID_RESPONSE: Model output blocked by safety policy (finishReason: {finish_reason})."
+            )
+        parts = cand.get("content", {}).get("parts", [])
+        if not parts:
+            raise GeminiInvalidResponseError(
+                "GEMINI_INVALID_RESPONSE: Empty parts in Gemini candidate response."
+            )
+        text_parts = [
+            p["text"] for p in parts
+            if not p.get("thought") and "text" in p and p["text"]
+        ]
+        text = "\n".join(text_parts) if text_parts else parts[-1].get("text", "")
+        return text.strip()
 
     def _observe_gemini_live(
         self,
@@ -424,16 +488,12 @@ class DualModeAIObservationService:
                     "GEMINI_INVALID_RESPONSE: Empty parts in Gemini candidate response."
                 )
 
-            # Filter out reasoning/thought parts (e.g. Gemini 2.5 thinking) to isolate text payload
-            text = ""
-            for p in parts:
-                if p.get("thought"):
-                    continue
-                if "text" in p and p["text"]:
-                    text = p["text"]
-                    break
-            if not text:
-                text = parts[-1].get("text", "").strip()
+            # Filter out reasoning/thought parts (e.g. Gemini 2.5/3.8 thinking) to isolate text payload
+            non_thought_parts = [
+                p["text"] for p in parts
+                if not p.get("thought") and "text" in p and p["text"]
+            ]
+            text = "\n".join(non_thought_parts) if non_thought_parts else parts[-1].get("text", "").strip()
 
             # Clean markdown code block wraps if present (including preambles)
             fence_match = re.search(r"```(?:json)?\s*([\s\S]*?)\s*```", text)

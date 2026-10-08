@@ -29,7 +29,7 @@ class AIObservationResult(BaseModel):
     Strictly marked AI_ESTIMATED per ADR-001 trust boundaries.
     """
     provider: str = Field(..., description="AI Service provider ('google-gemini' or 'deterministic-replay')")
-    model: str = Field(..., description="Model identifier (e.g. 'gemini-2.5-flash' or 'fixture-v1.0')")
+    model: str = Field(..., description="Model identifier (e.g. 'gemini-3.8-flash' or 'fixture-v1.0')")
     execution_mode: str = Field(..., description="'LIVE_GEMINI' or 'DETERMINISTIC_FIXTURE'")
     inference_timestamp: datetime = Field(
         default_factory=lambda: datetime.now(timezone.utc),

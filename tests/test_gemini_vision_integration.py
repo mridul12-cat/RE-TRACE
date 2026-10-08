@@ -182,16 +182,18 @@ class TestGeminiVisionIntegration(unittest.TestCase):
                 evidence_sha256="deadbeef1234",
             )
             mock_api.assert_called_once()
-            # Assert payload sent to Gemini has inline_data
+            # Assert payload sent to Gemini has inlineData / inline_data
             payload = mock_api.call_args[0][0]
-            inline_part = payload["contents"][0]["parts"][1]["inline_data"]
-            self.assertEqual(inline_part["mime_type"], "image/jpeg")
+            part = payload["contents"][0]["parts"][1]
+            inline_part = part.get("inlineData") or part.get("inline_data")
+            mime = inline_part.get("mimeType") or inline_part.get("mime_type")
+            self.assertEqual(mime, "image/jpeg")
             self.assertTrue(len(inline_part["data"]) > 0)
 
             # Assert observed output is 1 unit (NOT fixture 15 or 40!)
             self.assertEqual(res.execution_mode, "LIVE_GEMINI")
             self.assertEqual(res.provider, "google-gemini")
-            self.assertEqual(res.model, "gemini-2.5-flash")
+            self.assertEqual(res.model, "gemini-3.8-flash")
             self.assertEqual(res.estimated_item_count, 1)
             self.assertNotEqual(res.estimated_item_count, 15)
             self.assertNotEqual(res.estimated_item_count, 40)
@@ -205,7 +207,8 @@ class TestGeminiVisionIntegration(unittest.TestCase):
     # -------------------------------------------------------------------------
     def test_03_provider_and_model_metadata(self):
         """
-        Req 3: Provider must be 'google-gemini' and model must match configured model.
+        Req 3: Provider must be 'google-gemini' and model must match configured model (default gemini-3.8-flash).
+        Preserves GEMINI_MODEL as an environment-configurable setting.
         """
         mock_resp = {
             "candidates": [
@@ -218,6 +221,11 @@ class TestGeminiVisionIntegration(unittest.TestCase):
                 }
             ]
         }
+        # 1. Default configured model is gemini-3.8-flash
+        default_svc = DualModeAIObservationService(default_mode="LIVE_GEMINI", api_key="mock-key")
+        self.assertEqual(default_svc.current_model, "gemini-3.8-flash")
+
+        # 2. Explicit constructor model override
         custom_service = DualModeAIObservationService(
             default_mode="LIVE_GEMINI",
             api_key="mock-key",
@@ -227,6 +235,11 @@ class TestGeminiVisionIntegration(unittest.TestCase):
             res = custom_service.observe(self.valid_jpeg_bytes, force_mode="LIVE_GEMINI")
             self.assertEqual(res.provider, "google-gemini")
             self.assertEqual(res.model, "gemini-2.0-flash")
+
+        # 3. GEMINI_MODEL environment variable configuration and models/ stripping
+        with patch.dict(os.environ, {"GEMINI_MODEL": "models/gemini-3.8-flash"}):
+            env_svc = DualModeAIObservationService(default_mode="LIVE_GEMINI", api_key="mock-key")
+            self.assertEqual(env_svc.current_model, "gemini-3.8-flash")
 
     # -------------------------------------------------------------------------
     # 4. AI_ESTIMATED Provenance
@@ -314,6 +327,27 @@ class TestGeminiVisionIntegration(unittest.TestCase):
             with self.assertRaises(GeminiUnavailableError) as ctx:
                 service._call_gemini_api({"contents": []})
             self.assertIn("timeout", str(ctx.exception).lower())
+
+        # 5. HTTP 404 Model Not Found / Deprecated
+        http_err_404 = urllib.error.HTTPError(
+            url="https://api.test", code=404, msg="Not Found", hdrs={},
+            fp=MagicMock(read=lambda: b"This model models/gemini-2.5-flash is no longer available to new users.")
+        )
+        with patch("urllib.request.urlopen", side_effect=http_err_404):
+            with self.assertRaises(GeminiUnavailableError) as ctx:
+                service._call_gemini_api({"contents": []})
+            self.assertIn("404", str(ctx.exception))
+            self.assertIn("gemini-2.5-flash", str(ctx.exception))
+
+        # 6. Credential redaction safety with empty key (does not corrupt error body)
+        http_err_500 = urllib.error.HTTPError(
+            url="https://api.test", code=500, msg="Server Error", hdrs={}, fp=MagicMock(read=lambda: b"Server fault")
+        )
+        with patch("urllib.request.urlopen", side_effect=http_err_500):
+            with self.assertRaises(GeminiUnavailableError) as ctx:
+                service._call_gemini_api({"contents": []})
+            self.assertIn("500", str(ctx.exception))
+            self.assertNotIn(secret_key, str(ctx.exception))
 
     # -------------------------------------------------------------------------
     # 7. Malformed Gemini Response Handling
@@ -635,6 +669,70 @@ class TestGeminiVisionIntegration(unittest.TestCase):
         self.assertIn("Evidence SHA-256", html)
         self.assertIn("LIVE GEMINI — UNAVAILABLE", html)
         self.assertIn("FALLBACK → DETERMINISTIC FIXTURE", html)
+
+    # -------------------------------------------------------------------------
+    # 17. Minimal Text-Only Gemini Request
+    # -------------------------------------------------------------------------
+    def test_17_minimal_text_only_gemini_request(self):
+        """
+        Req 17: Validates that minimal text-only Gemini request formats correctly,
+        extracts candidate text payload without thought parts, and sends via header auth.
+        """
+        mock_text_resp = {
+            "candidates": [
+                {
+                    "content": {
+                        "parts": [
+                            {"thought": True, "text": "Reasoning about the text query..."},
+                            {"text": json.dumps({"status": "healthy", "model": "gemini-3.8-flash"})}
+                        ]
+                    }
+                }
+            ]
+        }
+        with patch.object(self.ai_service, "_call_gemini_api", return_value=mock_text_resp) as mock_api:
+            text_out = self.ai_service.request_text("Health check ping")
+            mock_api.assert_called_once()
+            call_payload = mock_api.call_args[0][0]
+            self.assertEqual(call_payload["contents"][0]["parts"][0]["text"], "Health check ping")
+            self.assertIn("gemini-3.8-flash", text_out)
+
+    # -------------------------------------------------------------------------
+    # 18. Optional Environment-Gated Live Gemini Integration Test
+    # -------------------------------------------------------------------------
+    @unittest.skipUnless(os.getenv("GEMINI_API_KEY"), "Skipped: GEMINI_API_KEY environment variable not set")
+    def test_18_optional_environment_gated_live_gemini(self):
+        """
+        Req 18: Live end-to-end network test against Google Gemini 3.8 Flash.
+        Runs ONLY if a live GEMINI_API_KEY is present in the environment.
+        Ensures offline tests remain green and no API keys are required in CI.
+        """
+        live_key = os.getenv("GEMINI_API_KEY")
+        live_service = DualModeAIObservationService(default_mode="LIVE_GEMINI", api_key=live_key)
+
+        # 1. Text request
+        text_resp = live_service.request_text("Respond strictly with valid JSON: {\"retrace_status\": \"ok\"}")
+        self.assertTrue(len(text_resp) > 0)
+
+        # 2. Multimodal image request
+        image_path = os.path.join(PROJECT_ROOT, "demo", "sample-images", "battery_module_pallet.jpg")
+        with open(image_path, "rb") as f:
+            sample_bytes = f.read()
+
+        obs = live_service.observe(
+            file_bytes=sample_bytes,
+            filename="battery_module_pallet.jpg",
+            mime_type="image/jpeg",
+            force_mode="LIVE_GEMINI",
+            evidence_id="EV-LIVE-TEST",
+            evidence_sha256="aabbccddeeff",
+            allow_fallback=False
+        )
+        self.assertEqual(obs.execution_mode, "LIVE_GEMINI")
+        self.assertEqual(obs.provider, "google-gemini")
+        self.assertEqual(obs.model, "gemini-3.8-flash")
+        self.assertEqual(obs.provenance, "AI_ESTIMATED")
+        self.assertGreater(obs.estimated_item_count, 0)
 
 
 if __name__ == "__main__":

@@ -38,7 +38,7 @@ class AIInferenceObservation(BaseModel):
     AI is strictly an observation/estimation layer, never an independent verifier.
     """
     model_provider: str = Field(..., description="AI service provider (e.g., 'Google Gemini', 'Deterministic Mock Fixture')")
-    model_version: str = Field(..., description="Model version tag (e.g., 'gemini-2.5-flash', 'fixture-v1')")
+    model_version: str = Field(..., description="Model version tag (e.g., 'gemini-3.8-flash', 'fixture-v1')")
     inference_timestamp: datetime = Field(..., description="UTC timestamp of inference execution")
     detected_objects: List[str] = Field(default_factory=list, description="Visual labels detected (e.g., ['EV_Module_Cell', 'Copper_Busbar'])")
     estimated_materials: Dict[str, float] = Field(default_factory=dict, description="Estimated material fractions or kg values")

@@ -11,6 +11,35 @@ from pydantic import BaseModel, Field
 WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent.parent
 
 
+def _load_env_file():
+    """Loads key-value pairs from .env into os.environ if not already defined."""
+    env_file = WORKSPACE_ROOT / ".env"
+    if env_file.is_file():
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, val = line.split("=", 1)
+                    key = key.strip()
+                    val = val.strip().strip("'\"")
+                    if key and key not in os.environ:
+                        os.environ[key] = val
+        except Exception:
+            pass
+
+
+_load_env_file()
+
+
+def _get_default_gemini_model() -> str:
+    raw = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+    if raw.startswith("models/"):
+        raw = raw[len("models/"):].strip()
+    return raw or "gemini-3.8-flash"
+
+
 class Settings(BaseModel):
     app_name: str = "RE:TRACE Circular Economy Verification Platform"
     app_version: str = "1.1.1"
@@ -41,7 +70,7 @@ class Settings(BaseModel):
         default_factory=lambda: os.getenv("GEMINI_API_KEY", "")
     )
     gemini_model: str = Field(
-        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+        default_factory=_get_default_gemini_model
     )
     ai_mode: str = Field(
         default_factory=lambda: os.getenv("AI_MODE", "AUTO")

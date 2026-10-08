@@ -16,8 +16,7 @@ router = APIRouter(prefix="/ai", tags=["AI Observation"])
 
 ai_service = DualModeAIObservationService(
     default_mode=settings.ai_mode,
-    api_key=settings.gemini_api_key,
-    model=settings.gemini_model,
+    api_key=settings.gemini_api_key or None,
 )
 
 

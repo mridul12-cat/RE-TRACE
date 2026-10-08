@@ -52,11 +52,16 @@ def run_manual_verification():
     # -------------------------------------------------------------------------
     print("\n[+] 1. Creating distinct physical evidence images...")
 
-    # Image A: 1 Battery
-    image_a_bytes = (
-        b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
-        + b"RAW_IMAGE_PIXELS_SINGLE_BATTERY_PACK_48V" * 10
-    )
+    # Image A: 1 Battery (using real sample evidence image from repo if present)
+    sample_a_path = os.path.join(PROJECT_ROOT, "demo", "sample-images", "battery_module_pallet.jpg")
+    if os.path.exists(sample_a_path):
+        with open(sample_a_path, "rb") as f:
+            image_a_bytes = f.read()
+    else:
+        image_a_bytes = (
+            b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+            + b"RAW_IMAGE_PIXELS_SINGLE_BATTERY_PACK_48V" * 10
+        )
     resp_a = client.post(
         "/api/v1/evidence/upload",
         files={"file": ("single_battery_module.jpg", image_a_bytes, "image/jpeg")},
@@ -155,9 +160,13 @@ def run_manual_verification():
             # 1. Inspect API call
             mock_api_call.assert_called_once()
             call_payload = mock_api_call.call_args[0][0]
-            inline_data = call_payload["contents"][0]["parts"][1]["inline_data"]
-            assert inline_data["mime_type"] == "image/jpeg"
-            print("    * Verified: Uploaded evidence bytes were passed directly into Gemini inline_data.")
+            part = call_payload["contents"][0]["parts"][1]
+            assert "inlineData" in part or "inline_data" in part, "Payload must include inline image data"
+            inline_spec = part.get("inlineData") or part.get("inline_data")
+            mime = inline_spec.get("mimeType") or inline_spec.get("mime_type")
+            assert mime == "image/jpeg"
+            assert len(inline_spec["data"]) > 0
+            print("    * Verified: Uploaded evidence bytes were passed directly into Gemini inlineData.")
 
             # 2. Inspect AI Observation
             ai_obs_a = res_data_a["ai_observation"]
@@ -172,6 +181,7 @@ def run_manual_verification():
 
             assert ai_obs_a["execution_mode"] == "LIVE_GEMINI"
             assert ai_obs_a["provider"] == "google-gemini"
+            assert ai_obs_a["model"] == "gemini-3.8-flash"
             assert ai_obs_a["estimated_item_count"] == 1
             assert ai_obs_a["estimated_item_count"] not in (15, 40)
             assert ai_obs_a["provenance"] == "AI_ESTIMATED"
@@ -275,6 +285,52 @@ def run_manual_verification():
         assert res_fall["ai_observation"]["provider"] == "deterministic-replay"
         assert res_fall["ai_observation"]["provenance"] == "SIMULATED"
         print("    * Verified: Fallback is explicitly and truthfully declared. Zero silent substitution.")
+
+    # -------------------------------------------------------------------------
+    # TEST 5: Minimal Text-Only Request (Gemini 3.8 Flash)
+    # -------------------------------------------------------------------------
+    print("\n[+] 5. Validating Minimal Text-Only Request with gemini-3.8-flash...")
+    mock_gemini_text = {
+        "candidates": [
+            {
+                "content": {
+                    "parts": [{"text": json.dumps({"status": "healthy", "model": "gemini-3.8-flash"})}]
+                }
+            }
+        ]
+    }
+    svc_text = DualModeAIObservationService(default_mode="LIVE_GEMINI", api_key="test-key-valid")
+    with patch.object(svc_text, "_call_gemini_api", return_value=mock_gemini_text) as mock_text_call:
+        t_resp = svc_text.request_text("RE:TRACE health check ping")
+        mock_text_call.assert_called_once()
+        print(f"    * Minimal Text Response: {t_resp}")
+        assert "gemini-3.8-flash" in t_resp
+        print("    * Verified: Text-only request correctly formats payload for gemini-3.8-flash.")
+
+    # -------------------------------------------------------------------------
+    # TEST 6: Real Upstream Network Call (Only if live GEMINI_API_KEY is in environment)
+    # -------------------------------------------------------------------------
+    real_api_key = os.getenv("GEMINI_API_KEY")
+    if real_api_key:
+        print("\n[+] 6. LIVE_GEMINI Network Call Detected ($GEMINI_API_KEY present)...")
+        live_svc = DualModeAIObservationService(default_mode="LIVE_GEMINI", api_key=real_api_key)
+        live_txt = live_svc.request_text("Respond strictly with valid JSON: {\"retrace_model\": \"gemini-3.8-flash\"}")
+        print(f"    * Live Gemini 3.8 Text Response: {live_txt[:120]}")
+        live_obs = live_svc.observe(
+            file_bytes=image_a_bytes,
+            filename="live_battery_test.jpg",
+            mime_type="image/jpeg",
+            force_mode="LIVE_GEMINI",
+            allow_fallback=False
+        )
+        print(f"    * Live Gemini 3.8 Observation: {live_obs.model} / {live_obs.estimated_item_count} items")
+        assert live_obs.model == "gemini-3.8-flash"
+        assert live_obs.execution_mode == "LIVE_GEMINI"
+        assert live_obs.provenance == "AI_ESTIMATED"
+        print("    * Verified: Live network call to gemini-3.8-flash succeeded!")
+    else:
+        print("\n[+] 6. Live upstream network call skipped (GEMINI_API_KEY not set in shell environment).")
+        print("    * Verified: Offline contract tests passed 100% without external API key.")
 
     print("\n" + "=" * 70)
     print(" >>> ALL MANUAL INTEGRATION CHECKS PASSED SUCCESSFULLY (STATUS: GREEN) <<<")

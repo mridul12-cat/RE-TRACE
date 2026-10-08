@@ -844,7 +844,7 @@ class TestCustomVerificationWorkflow(unittest.TestCase):
         pid3 = self._create_and_prep_passport("DPP-AI-LIVE")
         mock_gemini_obs = AIObservationResult(
             provider="google-gemini",
-            model="gemini-2.5-flash",
+            model="gemini-3.8-flash",
             execution_mode="LIVE_GEMINI",
             inference_timestamp=datetime.now(timezone.utc),
             detected_items=[DetectedItem(label="EV_BATTERY_MODULE_6S2P", count=1, confidence=0.98)],
@@ -874,7 +874,7 @@ class TestCustomVerificationWorkflow(unittest.TestCase):
             obs3 = data3["ai_observation"]
             self.assertEqual(obs3["execution_mode"], "LIVE_GEMINI")
             self.assertEqual(obs3["provider"], "google-gemini")
-            self.assertEqual(obs3["model"], "gemini-2.5-flash")
+            self.assertEqual(obs3["model"], "gemini-3.8-flash")
             self.assertFalse(data3.get("ai_fallback_occurred"))
             self.assertEqual(data3.get("ai_requested_mode"), "LIVE_GEMINI")
 

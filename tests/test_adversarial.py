@@ -318,7 +318,7 @@ class TestAdversarialSuite(unittest.TestCase):
                     }
                 return {
                     "provider": "Google Gemini",
-                    "model": "gemini-2.5-flash",
+                    "model": "gemini-3.8-flash",
                     "estimated_items": 40,
                     "confidence": 0.94,
                     "provenance": ProvenanceCategory.AI_ESTIMATED.value
