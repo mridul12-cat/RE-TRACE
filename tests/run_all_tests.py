@@ -88,6 +88,7 @@ def run_suite():
         "Tier 1 (Lifecycle State Machine)": load_tier_suite("tests.test_state_machine", "TestLifecycleStateMachine"),
         "Tier 2 (FastAPI Backend Integration API)": load_tier_suite("tests.test_backend_api", "TestBackendAPI"),
         "Tier 2 (Custom Verification Workflow)": load_tier_suite("tests.test_custom_verification", "TestCustomVerificationWorkflow"),
+        "Tier 2 (Gemini Vision Multimodal Integration)": load_tier_suite("tests.test_gemini_vision_integration", "TestGeminiVisionIntegration"),
         "Tier 3 (Adversarial Suite Cases A-J)": load_tier_suite("tests.test_adversarial", "TestAdversarialSuite"),
         "Tier 2 & 4 (E2E Vertical Slice 12 Stages)": load_tier_suite("tests.test_vertical_slice", "TestVerticalSliceEndToEnd"),
     }

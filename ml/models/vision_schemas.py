@@ -61,8 +61,20 @@ class AIObservationResult(BaseModel):
         default_factory=list,
         description="Observed physical anomalies (e.g. 'CASING_BREACH', 'NON_STANDARD_PACKAGING')"
     )
+    provenance: str = Field(
+        default="AI_ESTIMATED",
+        description="Data provenance label ('AI_ESTIMATED' or 'SIMULATED')"
+    )
     provenance_category: ProvenanceCategory = Field(
         default=ProvenanceCategory.AI_ESTIMATED,
         description="Strict provenance attribution: AI_ESTIMATED"
+    )
+    evidence_id: Optional[str] = Field(
+        default=None,
+        description="Identifier of the uploaded physical evidence artifact analyzed (EV-XXXXXXXXXXXX)"
+    )
+    evidence_sha256: Optional[str] = Field(
+        default=None,
+        description="Cryptographic SHA-256 digest of the analyzed physical evidence"
     )
     notes: Optional[str] = None

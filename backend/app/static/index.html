@@ -258,7 +258,7 @@
               <i class="fa-solid fa-microchip text-purple-400"></i>
             </div>
             <div class="text-sm font-bold text-white font-mono">Dual-Mode AI</div>
-            <div class="text-[11px] text-purple-300 font-mono">Gemini 2.0 / Replayable Fixtures</div>
+            <div class="text-[11px] text-purple-300 font-mono">Live Gemini / Offline Fixtures</div>
           </div>
 
           <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1.5">
@@ -1047,15 +1047,18 @@
               <span class="text-xs font-bold text-white flex items-center gap-1.5">
                 <i class="fa-solid fa-microchip text-purple-400"></i> AI Observation Logs
               </span>
-              <span id="ai-audit-mode-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-500/30">Dual-Mode</span>
+              <span id="ai-audit-mode-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700">DETERMINISTIC FIXTURE</span>
             </div>
             <div id="ai-audit-container" class="space-y-2 text-xs font-mono">
               <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-slate-400">
                 <div class="text-slate-300 font-semibold text-xs">Latest AI Inference Session:</div>
-                <div class="flex justify-between"><span>Model / Provider:</span> <span id="ai-audit-model" class="text-purple-300 font-bold">Gemini 2.0 Flash / Fixture</span></div>
-                <div class="flex justify-between"><span>Observed Units:</span> <span id="ai-audit-units" class="text-white">40 Units</span></div>
-                <div class="flex justify-between"><span>Model Confidence:</span> <span id="ai-audit-conf" class="text-purple-400">96.5%</span></div>
-                <div class="flex justify-between"><span>Provenance:</span> <span id="ai-audit-prov" class="text-slate-300">AI_ESTIMATED</span></div>
+                <div class="flex justify-between"><span>Execution Mode:</span> <span id="ai-audit-mode" class="text-slate-300 font-bold">DETERMINISTIC FIXTURE (Default)</span></div>
+                <div class="flex justify-between"><span>Model / Provider:</span> <span id="ai-audit-model" class="text-slate-300 font-bold">deterministic-replay</span></div>
+                <div class="flex justify-between"><span>Observed Units:</span> <span id="ai-audit-units" class="text-white">— (Awaiting Verification)</span></div>
+                <div class="flex justify-between"><span>Model Confidence:</span> <span id="ai-audit-conf" class="text-slate-400">—</span></div>
+                <div class="flex justify-between"><span>Provenance:</span> <span id="ai-audit-prov" class="text-slate-300">SIMULATED</span></div>
+                <div class="flex justify-between"><span>Evidence Analyzed:</span> <span id="ai-audit-evid" class="text-slate-400 font-mono text-[11px]">Replay Baseline</span></div>
+                <div class="flex justify-between"><span>Evidence SHA-256:</span> <span id="ai-audit-sha" class="text-slate-400 font-mono text-[11px]">—</span></div>
               </div>
               <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
                 <i class="fa-solid fa-circle-info mr-1 text-slate-500"></i>
@@ -2310,13 +2313,14 @@ ${concise}`;
             (requestedMode === 'LIVE_GEMINI' && (obs.provider === 'deterministic-replay' || obs.execution_mode === 'DETERMINISTIC_FIXTURE')) ||
             (obs.notes && obs.notes.includes('Fallback from LIVE_GEMINI'))
           );
-          const isLiveGemini = !isFallback && obs.execution_mode === 'LIVE_GEMINI' && obs.provider === 'google-gemini';
+          const isLiveGemini = !isFallback && obs.execution_mode === 'LIVE_GEMINI' && (obs.provider === 'google-gemini' || obs.provider === 'Google Gemini');
+          const evidenceRef = obs.evidence_id ? `${obs.evidence_id} ${obs.evidence_sha256 ? '(' + obs.evidence_sha256.substring(0, 16) + '...)' : ''}` : 'Uploaded physical evidence';
 
           if (isFallback) {
             // Case C: Gemini requested but fallback occurred
             const fallbackReason = data.ai_fallback_reason || (obs.notes && obs.notes.includes('Fallback from LIVE_GEMINI') ? obs.notes : 'Live Gemini API unavailable or credentials not set; degraded to deterministic fixture.');
             if (aiBadge) {
-              aiBadge.textContent = 'FALLBACK (DETERMINISTIC FIXTURE)';
+              aiBadge.textContent = 'FALLBACK → DETERMINISTIC FIXTURE';
               aiBadge.className = 'px-2 py-0.5 rounded font-mono text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/40 font-bold';
             }
             aiDetails.innerHTML = `
@@ -2330,7 +2334,8 @@ ${concise}`;
               </div>
               <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
               <div><strong>Fallback Reason:</strong> <span class="text-slate-400 font-mono text-[11px]">${fallbackReason}</span></div>
-              <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">AI_ESTIMATED (Simulated Fixture Telemetry)</span></div>
+              <div><strong>Evidence Analyzed:</strong> <span class="text-slate-400 font-mono text-[11px]">${evidenceRef}</span></div>
+              <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">SIMULATED</span></div>
               <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
               <div class="text-amber-300/90 pt-1 font-semibold text-[11px]">
                 <i class="fa-solid fa-triangle-exclamation mr-1"></i>Fallback active: replayed deterministic fixture. No external Gemini inference occurred. AI observes evidence; deterministic verification makes the decision.
@@ -2342,11 +2347,17 @@ ${concise}`;
             const auditUnits = document.getElementById('ai-audit-units');
             const auditConf = document.getElementById('ai-audit-conf');
             const auditProv = document.getElementById('ai-audit-prov');
+            const auditMode = document.getElementById('ai-audit-mode');
+            const auditEvid = document.getElementById('ai-audit-evid');
+            const auditSha = document.getElementById('ai-audit-sha');
             const auditModeBadge = document.getElementById('ai-audit-mode-badge');
             if (auditModel) auditModel.textContent = `${obs.provider} (${obs.model}) [FALLBACK]`;
             if (auditUnits) auditUnits.textContent = `${obs.estimated_item_count} Units`;
             if (auditConf) auditConf.textContent = `${(obs.confidence * 100).toFixed(1)}%`;
-            if (auditProv) auditProv.textContent = 'AI_ESTIMATED (SIMULATED FIXTURE)';
+            if (auditProv) auditProv.textContent = 'SIMULATED';
+            if (auditMode) auditMode.textContent = 'DETERMINISTIC FIXTURE (FALLBACK)';
+            if (auditEvid) auditEvid.textContent = obs.evidence_id || 'EV-FIXTURE';
+            if (auditSha) auditSha.textContent = obs.evidence_sha256 ? ('0x' + obs.evidence_sha256.substring(0, 16) + '...') : '—';
             if (auditModeBadge) {
               auditModeBadge.textContent = 'FALLBACK (FIXTURE)';
               auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-500/30 font-bold';
@@ -2354,15 +2365,18 @@ ${concise}`;
 
           } else if (isLiveGemini) {
             // Case A: Actual Gemini response
+            const providerLabel = (obs.provider === 'google-gemini') ? 'Google Gemini' : obs.provider;
             if (aiBadge) {
               aiBadge.textContent = 'LIVE GEMINI';
               aiBadge.className = 'px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 border border-purple-500/40 font-bold';
             }
             aiDetails.innerHTML = `
               <div><strong>Execution Mode:</strong> <span class="text-purple-300 font-bold">LIVE GEMINI</span></div>
-              <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
+              <div><strong>Model / Provider:</strong> ${providerLabel} (${obs.model})</div>
+              <div><strong>Evidence Analyzed:</strong> <span class="text-purple-300 font-mono text-[11px]">${evidenceRef}</span></div>
               <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-purple-950/60 text-purple-300 font-mono">AI_ESTIMATED</span></div>
-              <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
+              <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}% (Model Estimated)</div>
+              ${obs.notes ? `<div class="text-slate-300 text-[11px] pt-0.5"><strong>Visual Notes:</strong> ${obs.notes}</div>` : ''}
               <div class="text-purple-300/90 pt-1 font-semibold text-[11px]">
                 Live multimodal inference completed via Google Gemini. AI observes evidence; deterministic verification makes the decision.
               </div>
@@ -2373,11 +2387,17 @@ ${concise}`;
             const auditUnits = document.getElementById('ai-audit-units');
             const auditConf = document.getElementById('ai-audit-conf');
             const auditProv = document.getElementById('ai-audit-prov');
+            const auditMode = document.getElementById('ai-audit-mode');
+            const auditEvid = document.getElementById('ai-audit-evid');
+            const auditSha = document.getElementById('ai-audit-sha');
             const auditModeBadge = document.getElementById('ai-audit-mode-badge');
-            if (auditModel) auditModel.textContent = `${obs.provider} (${obs.model})`;
+            if (auditModel) auditModel.textContent = `${providerLabel} (${obs.model})`;
             if (auditUnits) auditUnits.textContent = `${obs.estimated_item_count} Units`;
             if (auditConf) auditConf.textContent = `${(obs.confidence * 100).toFixed(1)}%`;
             if (auditProv) auditProv.textContent = 'AI_ESTIMATED';
+            if (auditMode) auditMode.textContent = 'LIVE GEMINI';
+            if (auditEvid) auditEvid.textContent = obs.evidence_id || '—';
+            if (auditSha) auditSha.textContent = obs.evidence_sha256 ? ('0x' + obs.evidence_sha256.substring(0, 16) + '...') : '—';
             if (auditModeBadge) {
               auditModeBadge.textContent = 'LIVE GEMINI';
               auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-500/30 font-bold';
@@ -2392,10 +2412,11 @@ ${concise}`;
             aiDetails.innerHTML = `
               <div><strong>Execution Mode:</strong> <span class="text-slate-300 font-bold">DETERMINISTIC FIXTURE</span></div>
               <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model})</div>
-              <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">AI_ESTIMATED (Simulated Fixture Telemetry)</span></div>
+              <div><strong>Evidence Analyzed:</strong> <span class="text-slate-400 font-mono text-[11px]">${evidenceRef}</span></div>
+              <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-300 font-mono">SIMULATED</span></div>
               <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
               <div class="text-slate-400 pt-1 font-semibold text-[11px]">
-                Deterministic offline telemetry replayed. No external Gemini inference occurred. AI observes evidence; deterministic verification makes the decision.
+                Deterministic offline telemetry replayed. Uploaded evidence is NOT sent to Gemini in this mode. AI observes evidence; deterministic verification makes the decision.
               </div>
             `;
 
@@ -2404,15 +2425,61 @@ ${concise}`;
             const auditUnits = document.getElementById('ai-audit-units');
             const auditConf = document.getElementById('ai-audit-conf');
             const auditProv = document.getElementById('ai-audit-prov');
+            const auditMode = document.getElementById('ai-audit-mode');
+            const auditEvid = document.getElementById('ai-audit-evid');
+            const auditSha = document.getElementById('ai-audit-sha');
             const auditModeBadge = document.getElementById('ai-audit-mode-badge');
             if (auditModel) auditModel.textContent = `${obs.provider} (${obs.model})`;
             if (auditUnits) auditUnits.textContent = `${obs.estimated_item_count} Units`;
             if (auditConf) auditConf.textContent = `${(obs.confidence * 100).toFixed(1)}%`;
-            if (auditProv) auditProv.textContent = 'AI_ESTIMATED (SIMULATED FIXTURE)';
+            if (auditProv) auditProv.textContent = 'SIMULATED';
+            if (auditMode) auditMode.textContent = 'DETERMINISTIC FIXTURE';
+            if (auditEvid) auditEvid.textContent = obs.evidence_id || 'Replay Baseline';
+            if (auditSha) auditSha.textContent = obs.evidence_sha256 ? ('0x' + obs.evidence_sha256.substring(0, 16) + '...') : '—';
             if (auditModeBadge) {
               auditModeBadge.textContent = 'DETERMINISTIC FIXTURE';
               auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-bold';
             }
+          }
+        } else if (requestedMode === 'LIVE_GEMINI' || data.ai_requested_mode === 'LIVE_GEMINI') {
+          // Case D: Live Gemini was requested but failed/unavailable without fixture fallback
+          aiCard.classList.remove('hidden');
+          const failureReason = data.ai_fallback_reason || data.ai_notice || 'Live Gemini service unavailable or unconfigured.';
+          if (aiBadge) {
+            aiBadge.textContent = 'LIVE GEMINI — UNAVAILABLE';
+            aiBadge.className = 'px-2 py-0.5 rounded font-mono text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/40 font-bold';
+          }
+          aiDetails.innerHTML = `
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-1 pb-1 border-b border-slate-800/80">
+              <div><strong>REQUESTED MODE:</strong> <span class="text-purple-300 font-bold">LIVE GEMINI</span></div>
+              <div><strong>STATUS:</strong> <span class="text-rose-400 font-bold">UNAVAILABLE</span></div>
+            </div>
+            <div><strong>Failure Reason:</strong> <span class="text-slate-400 font-mono text-[11px]">${failureReason}</span></div>
+            <div><strong>Provenance:</strong> <span class="px-1.5 py-0.5 rounded text-[10px] bg-slate-800 text-slate-400 font-mono">N/A</span></div>
+            <div class="text-rose-300/90 pt-1 font-semibold text-[11px]">
+              <i class="fa-solid fa-triangle-exclamation mr-1"></i>Live Gemini inference was unavailable. Deterministic verification proceeded without AI observation.
+            </div>
+          `;
+
+          // Synchronize to Evidence & AI tab
+          const auditModel = document.getElementById('ai-audit-model');
+          const auditUnits = document.getElementById('ai-audit-units');
+          const auditConf = document.getElementById('ai-audit-conf');
+          const auditProv = document.getElementById('ai-audit-prov');
+          const auditMode = document.getElementById('ai-audit-mode');
+          const auditEvid = document.getElementById('ai-audit-evid');
+          const auditSha = document.getElementById('ai-audit-sha');
+          const auditModeBadge = document.getElementById('ai-audit-mode-badge');
+          if (auditModel) auditModel.textContent = 'Google Gemini (Unavailable)';
+          if (auditUnits) auditUnits.textContent = 'N/A';
+          if (auditConf) auditConf.textContent = 'N/A';
+          if (auditProv) auditProv.textContent = 'N/A';
+          if (auditMode) auditMode.textContent = 'LIVE GEMINI — UNAVAILABLE';
+          if (auditEvid) auditEvid.textContent = (data.evidence_bundle && data.evidence_bundle.evidence_file_ids && data.evidence_bundle.evidence_file_ids[0]) || 'Target Evidence';
+          if (auditSha) auditSha.textContent = '—';
+          if (auditModeBadge) {
+            auditModeBadge.textContent = 'LIVE GEMINI — UNAVAILABLE';
+            auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-500/30 font-bold';
           }
         } else {
           aiCard.classList.add('hidden');

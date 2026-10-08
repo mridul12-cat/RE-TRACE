@@ -64,6 +64,47 @@ class ResourceNotFoundError(RETraceBaseError):
         super().__init__(message, status_code=status.HTTP_404_NOT_FOUND, error_code="NOT_FOUND")
 
 
+class GeminiError(RETraceBaseError):
+    """Base exception for Google Gemini Multimodal Vision API operations."""
+    def __init__(
+        self,
+        message: str = "Google Gemini inference error.",
+        status_code: int = status.HTTP_503_SERVICE_UNAVAILABLE,
+        error_code: str = "GEMINI_ERROR"
+    ):
+        super().__init__(message, status_code=status_code, error_code=error_code)
+
+
+class GeminiNotConfiguredError(GeminiError):
+    def __init__(self, message: str = "GEMINI_NOT_CONFIGURED: GEMINI_API_KEY environment variable is not set."):
+        super().__init__(message, status_code=status.HTTP_503_SERVICE_UNAVAILABLE, error_code="GEMINI_NOT_CONFIGURED")
+
+
+class GeminiAuthError(GeminiError):
+    def __init__(self, message: str = "GEMINI_AUTHENTICATION_FAILED: Gemini API key authentication failed."):
+        super().__init__(message, status_code=status.HTTP_401_UNAUTHORIZED, error_code="GEMINI_AUTHENTICATION_FAILED")
+
+
+class GeminiRateLimitError(GeminiError):
+    def __init__(self, message: str = "GEMINI_RATE_LIMITED: Gemini API rate limit or quota exceeded."):
+        super().__init__(message, status_code=status.HTTP_429_TOO_MANY_REQUESTS, error_code="GEMINI_RATE_LIMITED")
+
+
+class GeminiUnavailableError(GeminiError):
+    def __init__(self, message: str = "GEMINI_UNAVAILABLE: Gemini API is temporarily unavailable."):
+        super().__init__(message, status_code=status.HTTP_503_SERVICE_UNAVAILABLE, error_code="GEMINI_UNAVAILABLE")
+
+
+class GeminiInvalidResponseError(GeminiError):
+    def __init__(self, message: str = "GEMINI_INVALID_RESPONSE: Malformed or unparseable structured response from Gemini API."):
+        super().__init__(message, status_code=status.HTTP_502_BAD_GATEWAY, error_code="GEMINI_INVALID_RESPONSE")
+
+
+class GeminiImageRejectedError(GeminiError):
+    def __init__(self, message: str = "GEMINI_IMAGE_REJECTED: Uploaded evidence content was rejected for multimodal inference."):
+        super().__init__(message, status_code=422, error_code="GEMINI_IMAGE_REJECTED")
+
+
 async def retrace_exception_handler(request: Request, exc: RETraceBaseError) -> JSONResponse:
     logger.warning(f"Domain exception on {request.method} {request.url.path}: {exc.error_code} - {exc.message}")
     return JSONResponse(

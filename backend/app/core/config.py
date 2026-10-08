@@ -40,6 +40,9 @@ class Settings(BaseModel):
     gemini_api_key: str = Field(
         default_factory=lambda: os.getenv("GEMINI_API_KEY", "")
     )
+    gemini_model: str = Field(
+        default_factory=lambda: os.getenv("GEMINI_MODEL", "gemini-2.5-flash")
+    )
     ai_mode: str = Field(
         default_factory=lambda: os.getenv("AI_MODE", "AUTO")
     )

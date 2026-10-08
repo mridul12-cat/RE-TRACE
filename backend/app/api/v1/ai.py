@@ -16,7 +16,8 @@ router = APIRouter(prefix="/ai", tags=["AI Observation"])
 
 ai_service = DualModeAIObservationService(
     default_mode=settings.ai_mode,
-    api_key=settings.gemini_api_key
+    api_key=settings.gemini_api_key,
+    model=settings.gemini_model,
 )
 
 
@@ -25,6 +26,7 @@ class ObserveRequest(BaseModel):
     product_id: Optional[str] = Field(None, description="Optional associated product ID")
     force_mode: Optional[str] = Field(None, description="'LIVE_GEMINI' or 'DETERMINISTIC_FIXTURE'")
     fixture_override: Optional[str] = Field(None, description="Override fixture name for deterministic replay")
+    allow_fallback: bool = Field(True, description="Allow fallback to deterministic fixture on Gemini error")
 
 
 @router.post("/observe", response_model=AIObservationResult)
@@ -48,6 +50,9 @@ def observe_evidence(req: ObserveRequest):
         mime_type=record.mime_type,
         product_id=req.product_id,
         force_mode=req.force_mode,
-        fixture_override=req.fixture_override
+        fixture_override=req.fixture_override,
+        evidence_id=record.file_id,
+        evidence_sha256=record.sha256_hash,
+        allow_fallback=req.allow_fallback,
     )
     return result

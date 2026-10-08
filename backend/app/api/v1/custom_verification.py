@@ -74,6 +74,9 @@ class CustomVerificationRequest(BaseModel):
     ai_fixture_override: Optional[str] = Field(
         None, description="Optional deterministic fixture override"
     )
+    allow_fallback: bool = Field(
+        default=True, description="Whether to allow fallback to deterministic fixture on Gemini error"
+    )
     scale_uncertainty_pct: float = Field(
         default=0.5, ge=0.0, le=5.0, description="Scale calibration tolerance percentage"
     )
@@ -156,6 +159,7 @@ def verify_custom_recycling(req: CustomVerificationRequest):
         ai_force_mode=req.ai_force_mode,
         ai_fixture_override=req.ai_fixture_override,
         scale_uncertainty_pct=req.scale_uncertainty_pct,
+        allow_fallback=req.allow_fallback,
     )
 
     return CustomVerificationResponse(**result)

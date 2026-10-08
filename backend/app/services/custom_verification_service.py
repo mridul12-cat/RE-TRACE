@@ -91,6 +91,7 @@ class CustomVerificationService:
         ai_force_mode: Optional[str] = None,
         ai_fixture_override: Optional[str] = None,
         scale_uncertainty_pct: float = 0.5,
+        allow_fallback: bool = True,
     ) -> Dict[str, Any]:
         """
         Executes end-to-end custom recycling verification workflow.
@@ -259,25 +260,15 @@ class CustomVerificationService:
                         product_id=pid,
                         force_mode=ai_force_mode,
                         fixture_override=ai_fixture_override,
-                    )
-                    ai_inference_obs = AIInferenceObservation(
-                        model_provider=ai_result.provider,
-                        model_version=ai_result.model,
-                        inference_timestamp=ai_result.inference_timestamp,
-                        detected_objects=[item.label for item in ai_result.detected_items],
-                        estimated_materials=ai_result.material_estimates,
-                        confidence_scores={"overall": ai_result.confidence},
-                        anomaly_flags=ai_result.anomaly_flags,
-                        provenance=ai_result.provenance_category,
-                    )
-                    ai_notice = (
-                        "AI observes evidence; deterministic verification makes the decision. "
-                        "Material estimation used as contextual prior only."
+                        evidence_id=record.file_id,
+                        evidence_sha256=record.sha256_hash,
+                        allow_fallback=allow_fallback,
                     )
 
                     # Check for fallback truthfulness
                     if (ai_force_mode == "LIVE_GEMINI") and (ai_result.execution_mode == "DETERMINISTIC_FIXTURE" or ai_result.provider == "deterministic-replay"):
                         ai_fallback_occurred = True
+                        ai_result.provenance = "SIMULATED"
                         if ai_result.notes and "Fallback from LIVE_GEMINI:" in ai_result.notes:
                             match = re.search(r"\[Fallback from LIVE_GEMINI:\s*([^\]]+)\]", ai_result.notes)
                             if match:
@@ -286,6 +277,27 @@ class CustomVerificationService:
                                 ai_fallback_reason = ai_result.notes
                         else:
                             ai_fallback_reason = "Live Gemini service unavailable or credentials not configured; degraded to deterministic fixture."
+
+                    obs_provenance = (
+                        ProvenanceCategory.SIMULATED
+                        if (ai_fallback_occurred or ai_result.execution_mode == "DETERMINISTIC_FIXTURE")
+                        else ProvenanceCategory.AI_ESTIMATED
+                    )
+
+                    ai_inference_obs = AIInferenceObservation(
+                        model_provider=ai_result.provider,
+                        model_version=ai_result.model,
+                        inference_timestamp=ai_result.inference_timestamp,
+                        detected_objects=[item.label for item in ai_result.detected_items],
+                        estimated_materials=ai_result.material_estimates,
+                        confidence_scores={"overall": ai_result.confidence},
+                        anomaly_flags=ai_result.anomaly_flags,
+                        provenance=obs_provenance,
+                    )
+                    ai_notice = (
+                        "AI observes evidence; deterministic verification makes the decision. "
+                        "Material estimation used as contextual prior only."
+                    )
             except Exception as e:
                 logger.warning(f"AI observation failed/unavailable: {e}. Gracefully continuing deterministic verification.")
                 ai_notice = f"AI observation unavailable ({str(e)}). Deterministic verification proceeded without AI observation."
