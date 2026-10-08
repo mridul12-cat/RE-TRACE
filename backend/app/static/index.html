@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -30,979 +30,1569 @@
     .provenance-observed { background-color: #3b82f6; color: white; }
     .provenance-ai { background-color: #8b5cf6; color: white; }
     .provenance-assumed { background-color: #f59e0b; color: white; }
-    .provenance-simulated { background-color: #6b7280; color: white; }
+    .provenance-simulated { background-color: #64748b; color: white; }
+    
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0f172a; }
+    ::-webkit-scrollbar-thumb { background: #334155; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #475569; }
   </style>
 </head>
-<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased">
+<body class="bg-slate-950 text-slate-100 min-h-screen font-sans antialiased flex flex-col lg:flex-row">
 
-  <!-- Top Navigation Bar -->
-  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur sticky top-0 z-50 px-6 py-4">
-    <div class="max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4">
-      <div class="flex items-center space-x-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-          <i class="fa-solid fa-recycle text-white text-xl"></i>
-        </div>
-        <div>
-          <h1 class="text-xl font-bold tracking-tight text-white flex items-center gap-2">
-            RE:TRACE <span class="text-xs px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono">v1.1.1</span>
-          </h1>
-          <p class="text-xs text-slate-400">Verifiable Digital Product Passports & Circular Mass-Balance</p>
-        </div>
+  <!-- ========================================================================= -->
+  <!-- PERSISTENT DESKTOP SIDEBAR (lg:flex)                                      -->
+  <!-- ========================================================================= -->
+  <aside id="app-sidebar" class="hidden lg:flex lg:flex-col lg:w-64 lg:fixed lg:inset-y-0 lg:left-0 z-40 bg-slate-900/95 border-r border-slate-800 backdrop-blur">
+    <!-- Brand / Header -->
+    <div class="p-5 border-b border-slate-800 flex items-center space-x-3">
+      <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-400 flex items-center justify-center shadow-lg shadow-emerald-500/20 shrink-0">
+        <i class="fa-solid fa-recycle text-white text-xl"></i>
       </div>
+      <div class="truncate">
+        <div class="flex items-center gap-2">
+          <span class="font-extrabold text-lg tracking-tight text-white">RE:TRACE</span>
+          <span class="text-[10px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold">v1.2</span>
+        </div>
+        <p class="text-[11px] text-slate-400 truncate">Circular Provenance Platform</p>
+      </div>
+    </div>
 
-      <div class="flex flex-wrap items-center gap-3">
-        <!-- Blockchain Truthfulness Badge (Section R5) -->
-        <div class="flex items-center space-x-2 px-3 py-1.5 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400 text-xs font-mono">
+    <!-- 7 Navigation Tabs -->
+    <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
+      <div class="px-3 pb-2 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">Platform Modules</div>
+      
+      <button onclick="navigateTo('overview')" data-view="overview" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition group text-left">
+        <i class="fa-solid fa-gauge-high w-4 text-center text-slate-400 group-hover:text-emerald-400 transition"></i>
+        <span>Overview</span>
+      </button>
+
+      <button onclick="navigateTo('passports')" data-view="passports" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition group text-left">
+        <i class="fa-solid fa-id-card w-4 text-center text-slate-400 group-hover:text-blue-400 transition"></i>
+        <span>Digital Passports</span>
+      </button>
+
+      <button onclick="navigateTo('verification')" data-view="verification" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition group text-left">
+        <i class="fa-solid fa-sliders w-4 text-center text-slate-400 group-hover:text-indigo-400 transition"></i>
+        <span>Verification</span>
+      </button>
+
+      <button onclick="navigateTo('evidence')" data-view="evidence" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition group text-left">
+        <i class="fa-solid fa-brain w-4 text-center text-slate-400 group-hover:text-purple-400 transition"></i>
+        <span>Evidence & AI</span>
+      </button>
+
+      <button onclick="navigateTo('blockchain')" data-view="blockchain" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition group text-left">
+        <i class="fa-solid fa-cube w-4 text-center text-slate-400 group-hover:text-teal-400 transition"></i>
+        <span>Blockchain & PoR</span>
+      </button>
+
+      <button onclick="navigateTo('investigation')" data-view="investigation" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition group text-left">
+        <i class="fa-solid fa-magnifying-glass-chart w-4 text-center text-slate-400 group-hover:text-rose-400 transition"></i>
+        <span>Investigation</span>
+      </button>
+
+      <div class="pt-2 px-3 pb-1 text-[10px] font-mono uppercase tracking-wider text-slate-500 font-semibold">Evaluation</div>
+
+      <button onclick="navigateTo('demo')" data-view="demo" class="nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-slate-800/80 transition group text-left">
+        <i class="fa-solid fa-flask w-4 text-center text-slate-400 group-hover:text-amber-400 transition"></i>
+        <span>Demo Lab</span>
+      </button>
+    </nav>
+
+    <!-- Sidebar Bottom Status Indicators -->
+    <div class="p-4 border-t border-slate-800 space-y-2.5 text-[11px] font-mono">
+      <div class="flex items-center justify-between text-slate-400">
+        <span class="flex items-center gap-1.5">
           <span class="relative flex h-2 w-2">
             <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
             <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
           </span>
-          <span id="blockchain-badge">LOCAL TESTNET (Chain ID: 31337)</span>
-        </div>
-
-        <!-- AI Mode Badge -->
-        <div class="px-3 py-1.5 rounded-lg bg-purple-950/60 border border-purple-500/30 text-purple-300 text-xs font-mono flex items-center gap-2">
-          <i class="fa-solid fa-microchip"></i>
-          <span>Dual-Mode AI: Gemini / Fixtures</span>
-        </div>
-
-        <a href="/docs" target="_blank" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">
-          <i class="fa-solid fa-book mr-1"></i> API Docs
+          <span>Ledger:</span>
+        </span>
+        <span class="text-emerald-400 font-bold">LOCAL TESTNET</span>
+      </div>
+      <div class="flex items-center justify-between text-slate-400">
+        <span>Chain ID:</span>
+        <span class="text-slate-200">31337</span>
+      </div>
+      <div class="flex items-center justify-between text-slate-400">
+        <span>AI Engine:</span>
+        <span class="text-purple-300">Dual-Mode</span>
+      </div>
+      <div class="pt-1">
+        <a href="/docs" target="_blank" class="w-full flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs transition">
+          <i class="fa-solid fa-book text-[10px]"></i> OpenAPI Docs
         </a>
       </div>
     </div>
+  </aside>
+
+  <!-- ========================================================================= -->
+  <!-- MOBILE RESPONSIVE HEADER & DRAWER                                         -->
+  <!-- ========================================================================= -->
+  <header class="lg:hidden sticky top-0 z-50 bg-slate-900/95 border-b border-slate-800 px-4 py-3 flex items-center justify-between backdrop-blur">
+    <div class="flex items-center space-x-2.5">
+      <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white text-base shadow">
+        <i class="fa-solid fa-recycle"></i>
+      </div>
+      <div>
+        <span class="font-bold text-white text-base">RE:TRACE</span>
+        <span class="text-[10px] px-1.5 py-0.2 rounded-full bg-emerald-500/20 text-emerald-300 font-mono font-bold ml-1">v1.2</span>
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <span class="text-[10px] font-mono px-2 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-400">Chain 31337</span>
+      <button onclick="toggleMobileDrawer()" id="mobile-menu-btn" class="p-2 rounded-lg bg-slate-800 text-slate-300 hover:text-white focus:outline-none">
+        <i class="fa-solid fa-bars text-sm"></i>
+      </button>
+    </div>
   </header>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-6 py-8 space-y-8">
-
-    <!-- 1-Click Interactive Scenarios Hero Bar -->
-    <section class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 shadow-2xl relative overflow-hidden">
-      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-6">
-        <div class="space-y-1">
-          <h2 class="text-lg font-bold text-white flex items-center gap-2">
-            <i class="fa-solid fa-wand-magic-sparkles text-emerald-400"></i> Interactive Demo Walkthrough
-          </h2>
-          <p class="text-sm text-slate-400">Execute end-to-end hackathon scenarios to test cryptographic integrity, mathematical gating, and anti-fraud quarantine.</p>
-        </div>
-
-        <div class="flex flex-wrap gap-3">
-          <button onclick="runScenario('A')" id="btn-scenario-a" class="px-4 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95">
-            <i class="fa-solid fa-circle-check"></i> Run Scenario A (Legitimate)
-          </button>
-          <button onclick="runScenario('B')" id="btn-scenario-b" class="px-4 py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-rose-600/20 active:scale-95">
-            <i class="fa-solid fa-triangle-exclamation"></i> Run Scenario B (Fraud Claim)
-          </button>
-          <button onclick="runScenario('C')" id="btn-scenario-c" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-amber-600/20 active:scale-95">
-            <i class="fa-solid fa-shield-halved"></i> Run Scenario C (Evidence Tampering)
-          </button>
-          <button onclick="toggleCustomVerification()" id="btn-custom-verification" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95">
-            <i class="fa-solid fa-sliders"></i> Custom Verification
+  <!-- Mobile Drawer Overlay -->
+  <div id="mobile-drawer" class="hidden lg:hidden fixed inset-0 z-50 bg-slate-950/80 backdrop-blur">
+    <div class="w-64 bg-slate-900 h-full p-4 flex flex-col justify-between border-r border-slate-800">
+      <div class="space-y-4">
+        <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+          <span class="font-bold text-white text-base">Navigation</span>
+          <button onclick="toggleMobileDrawer()" class="text-slate-400 hover:text-white p-1">
+            <i class="fa-solid fa-xmark text-lg"></i>
           </button>
         </div>
+        <nav class="space-y-1 text-xs">
+          <button onclick="navigateTo('overview')" data-view="overview" class="mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left">
+            <i class="fa-solid fa-gauge-high w-4 text-center"></i> Overview
+          </button>
+          <button onclick="navigateTo('passports')" data-view="passports" class="mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left">
+            <i class="fa-solid fa-id-card w-4 text-center"></i> Digital Passports
+          </button>
+          <button onclick="navigateTo('verification')" data-view="verification" class="mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left">
+            <i class="fa-solid fa-sliders w-4 text-center"></i> Verification
+          </button>
+          <button onclick="navigateTo('evidence')" data-view="evidence" class="mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left">
+            <i class="fa-solid fa-brain w-4 text-center"></i> Evidence & AI
+          </button>
+          <button onclick="navigateTo('blockchain')" data-view="blockchain" class="mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left">
+            <i class="fa-solid fa-cube w-4 text-center"></i> Blockchain & PoR
+          </button>
+          <button onclick="navigateTo('investigation')" data-view="investigation" class="mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left">
+            <i class="fa-solid fa-magnifying-glass-chart w-4 text-center"></i> Investigation
+          </button>
+          <button onclick="navigateTo('demo')" data-view="demo" class="mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left">
+            <i class="fa-solid fa-flask w-4 text-center"></i> Demo Lab
+          </button>
+        </nav>
       </div>
-
-      <!-- Execution Output Banner -->
-      <div id="scenario-output" class="hidden mt-6 pt-6 border-t border-slate-800 space-y-4">
-        <div class="flex items-center justify-between">
-          <h3 id="scenario-title" class="text-base font-semibold text-white"></h3>
-          <span id="scenario-verdict" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider"></span>
-        </div>
-        <div id="scenario-stages" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
-        <div id="scenario-math" class="hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono whitespace-pre-wrap text-slate-300"></div>
+      <div class="text-[11px] font-mono text-slate-500 pt-3 border-t border-slate-800">
+        <div>LOCAL TESTNET (31337)</div>
+        <div class="text-slate-400">RE:TRACE Platform v1.2</div>
       </div>
-    </section>
-
-    <!-- Provenance Category Legend (ADR-001 Pillar 1) -->
-    <div class="flex flex-wrap items-center gap-3 p-4 rounded-xl bg-slate-900/40 border border-slate-800/80 text-xs">
-      <span class="font-semibold text-slate-400 mr-2"><i class="fa-solid fa-tag mr-1"></i> Data Provenance Standards:</span>
-      <span class="px-2.5 py-1 rounded-md provenance-measured font-mono">MEASURED (Certified Scale)</span>
-      <span class="px-2.5 py-1 rounded-md provenance-observed font-mono">OBSERVED (Operator Log)</span>
-      <span class="px-2.5 py-1 rounded-md provenance-ai font-mono">AI_ESTIMATED (Computer Vision)</span>
-      <span class="px-2.5 py-1 rounded-md provenance-assumed font-mono">REFERENCE_ASSUMED (OEM BoM)</span>
-      <span class="px-2.5 py-1 rounded-md provenance-simulated font-mono">SIMULATED (Test Fixture)</span>
     </div>
+  </div>
 
-    <!-- Fourth Entry Point: Custom Verification Workbench -->
-    <section id="custom-verification-section" class="rounded-2xl border border-indigo-500/40 bg-slate-900/90 p-6 shadow-2xl space-y-6">
-      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
-        <div class="space-y-1">
-          <div class="flex items-center gap-2">
-            <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
-              <i class="fa-solid fa-sliders"></i>
-            </span>
-            <h2 class="text-lg font-bold text-white">Custom Recycling Verification Workbench</h2>
-            <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono text-xs">Generic Pipeline</span>
-          </div>
-          <p class="text-xs text-slate-400">
-            Select an existing DPP, submit custom facility weighbridge & recovered materials, upload physical evidence, execute optional AI computer vision observation, and run deterministic closed-form mass balance with local EVM ledger anchoring.
-          </p>
+  <!-- ========================================================================= -->
+  <!-- MAIN APPLICATION CONTENT AREA (lg:ml-64)                                  -->
+  <!-- ========================================================================= -->
+  <main class="lg:ml-64 flex-1 min-h-screen flex flex-col bg-slate-950">
+
+    <!-- Top Sticky Bar (Desktop Breadcrumb & Global Badges) -->
+    <header class="hidden lg:flex sticky top-0 z-30 border-b border-slate-800/80 bg-slate-900/60 backdrop-blur px-8 py-3.5 items-center justify-between">
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-slate-500">Platform</span>
+        <span class="text-slate-600">/</span>
+        <span id="breadcrumb-title" class="font-semibold text-white">Overview</span>
+      </div>
+      <div class="flex items-center gap-3 text-xs font-mono">
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-emerald-950/60 border border-emerald-500/30 text-emerald-400">
+          <span class="h-2 w-2 rounded-full bg-emerald-500 inline-block"></span>
+          <span id="blockchain-badge">LOCAL TESTNET (Chain ID: 31337)</span>
         </div>
-        <div class="flex items-center gap-2">
-          <button type="button" onclick="cvResetDemoPassports()" class="px-3 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-xs font-mono border border-amber-500/30 transition flex items-center gap-1.5">
-            <i class="fa-solid fa-rotate-left"></i> Reset Demo DPP
-          </button>
-          <button type="button" onclick="cvLoadPassports()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition flex items-center gap-1.5">
-            <i class="fa-solid fa-arrows-rotate"></i> Refresh DPPs
-          </button>
+        <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-purple-950/60 border border-purple-500/30 text-purple-300">
+          <i class="fa-solid fa-microchip"></i>
+          <span>Dual-Mode AI</span>
         </div>
       </div>
+    </header>
 
-      <!-- Main Form Grid: 2 Columns -->
-      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <!-- Global View Container -->
+    <div class="flex-1 p-4 sm:p-6 lg:p-8 max-w-7xl w-full mx-auto space-y-6">
 
-        <!-- Column 1: Passport Selection & Facility Intake -->
-        <div class="space-y-5">
-          <!-- Step 1: Select DPP -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">1</span>
-                Select Existing Digital Product Passport (DPP)
-              </label>
-              <span id="cv-dpp-state-badge" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-slate-300">
-                LOADING...
+      <!-- ===================================================================== -->
+      <!-- MODULE 1: OVERVIEW                                                    -->
+      <!-- ===================================================================== -->
+      <section id="view-overview" class="view-panel space-y-6">
+        <!-- Hero Banner -->
+        <div class="rounded-2xl border border-slate-800 bg-gradient-to-br from-slate-900/90 via-slate-900/60 to-slate-950 p-6 lg:p-8 shadow-2xl relative overflow-hidden">
+          <div class="max-w-3xl space-y-3 relative z-10">
+            <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 text-xs font-mono">
+              <i class="fa-solid fa-circle-check"></i> Sustainable Supply Chains Platform
+            </div>
+            <h2 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              RE:TRACE
+            </h2>
+            <p class="text-base sm:text-lg font-medium text-emerald-300/90 leading-snug">
+              AI-verified proof-of-recycling and digital material provenance.
+            </p>
+            <p class="text-xs sm:text-sm text-slate-400 leading-relaxed">
+              Provides verifiable end-to-end circular battery & critical electronics traceability: binding EU Digital Product Passports (DPP), computer vision observation, closed-form mass-balance verification, and cryptographic local EVM ledger commitments.
+            </p>
+          </div>
+          <div class="absolute -right-8 -bottom-8 w-64 h-64 bg-emerald-500/5 rounded-full blur-3xl pointer-events-none"></div>
+        </div>
+
+        <!-- Real System Status Cards (Section R5 & R6) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1.5">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="font-medium">Ledger Network</span>
+              <i class="fa-solid fa-cube text-emerald-400"></i>
+            </div>
+            <div class="text-sm font-bold text-white font-mono">LOCAL TESTNET</div>
+            <div class="text-[11px] text-emerald-400 font-mono">Chain ID: 31337 (Synchronized)</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1.5">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="font-medium">Computer Vision</span>
+              <i class="fa-solid fa-microchip text-purple-400"></i>
+            </div>
+            <div class="text-sm font-bold text-white font-mono">Dual-Mode AI</div>
+            <div class="text-[11px] text-purple-300 font-mono">Gemini 2.0 / Replayable Fixtures</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1.5">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="font-medium">Verification Engine</span>
+              <i class="fa-solid fa-scale-balanced text-teal-400"></i>
+            </div>
+            <div class="text-sm font-bold text-white font-mono">Mass-Balance</div>
+            <div class="text-[11px] text-teal-300 font-mono">Deterministic Closed-Form</div>
+          </div>
+
+          <div class="p-4 rounded-xl bg-slate-900/60 border border-slate-800/80 space-y-1.5">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span class="font-medium">Evidence Integrity</span>
+              <i class="fa-solid fa-shield-halved text-blue-400"></i>
+            </div>
+            <div class="text-sm font-bold text-white font-mono">RFC 8785 JSON</div>
+            <div class="text-[11px] text-blue-300 font-mono">SHA-256 Commitments</div>
+          </div>
+        </div>
+
+        <!-- Core Pipeline Flow Visualization -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-6 space-y-4">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <div>
+              <h3 class="text-sm font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-diagram-project text-emerald-400"></i> Canonical Verification Pipeline
+              </h3>
+              <p class="text-xs text-slate-400">Multi-stage pipeline from intake scale ticket to immutable on-chain certificate.</p>
+            </div>
+            <div class="px-2.5 py-1 rounded-md bg-purple-950/40 border border-purple-500/30 text-[11px] text-purple-300 font-mono">
+              Trust Segregation (ADR-001)
+            </div>
+          </div>
+
+          <!-- Pipeline Stages Grid -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2 text-center text-xs font-mono">
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-slate-500 text-[10px]">STAGE 1</div>
+              <div class="font-semibold text-slate-200">Physical Evidence</div>
+              <div class="text-[9px] text-slate-400">Scale Tickets</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-purple-800/50 space-y-1">
+              <div class="text-purple-400 text-[10px]">STAGE 2</div>
+              <div class="font-semibold text-purple-200">AI Observation</div>
+              <div class="text-[9px] text-purple-400/80">Visual Priors</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-slate-500 text-[10px]">STAGE 3</div>
+              <div class="font-semibold text-slate-200">Material Est.</div>
+              <div class="text-[9px] text-slate-400">Unit Volumes</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-teal-800/50 space-y-1">
+              <div class="text-teal-400 text-[10px]">STAGE 4</div>
+              <div class="font-semibold text-teal-200">Mass-Balance</div>
+              <div class="text-[9px] text-teal-400/80">Closed-Form</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-slate-500 text-[10px]">STAGE 5</div>
+              <div class="font-semibold text-slate-200">Evidence Hash</div>
+              <div class="text-[9px] text-slate-400">SHA-256 Bundle</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-emerald-800/50 space-y-1">
+              <div class="text-emerald-400 text-[10px]">STAGE 6</div>
+              <div class="font-semibold text-emerald-200">Gate Decision</div>
+              <div class="text-[9px] text-emerald-400/80">Deterministic</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 space-y-1">
+              <div class="text-slate-500 text-[10px]">STAGE 7</div>
+              <div class="font-semibold text-slate-200">Ledger Anchor</div>
+              <div class="text-[9px] text-slate-400">Local EVM</div>
+            </div>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-emerald-800/50 space-y-1">
+              <div class="text-emerald-400 text-[10px]">STAGE 8</div>
+              <div class="font-semibold text-emerald-200">PoR Certificate</div>
+              <div class="text-[9px] text-emerald-400/80">Cryptographic</div>
+            </div>
+          </div>
+
+          <!-- Trust Boundary Callout -->
+          <div class="p-3 rounded-xl bg-purple-950/30 border border-purple-500/30 text-xs text-purple-200 flex items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-shield-halved text-purple-400 text-sm"></i>
+              <span><strong>Trust Boundary Principle:</strong> AI observes evidence; deterministic verification makes the decision.</span>
+            </div>
+            <span class="text-[10px] font-mono text-purple-400 uppercase tracking-wider shrink-0">ADR-001 Enforced</span>
+          </div>
+        </div>
+
+        <!-- Quick Navigation Actions -->
+        <div>
+          <div class="text-xs font-semibold text-slate-400 mb-3 uppercase tracking-wider font-mono">Quick Actions</div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <button onclick="navigateTo('verification')" class="p-4 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-indigo-500/30 text-left transition group space-y-1.5">
+              <div class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-sm group-hover:scale-105 transition">
+                <i class="fa-solid fa-sliders"></i>
+              </div>
+              <div class="text-sm font-bold text-white">Start Verification</div>
+              <p class="text-[11px] text-slate-400">Execute custom recycling claims with weighbridge scale tickets.</p>
+            </button>
+
+            <button onclick="navigateTo('passports')" class="p-4 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-blue-500/30 text-left transition group space-y-1.5">
+              <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center text-sm group-hover:scale-105 transition">
+                <i class="fa-solid fa-id-card"></i>
+              </div>
+              <div class="text-sm font-bold text-white">View Passports</div>
+              <p class="text-[11px] text-slate-400">Inspect registered EV battery DPPs and certified Bill of Materials.</p>
+            </button>
+
+            <button onclick="navigateTo('investigation')" class="p-4 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-rose-500/30 text-left transition group space-y-1.5">
+              <div class="w-8 h-8 rounded-lg bg-rose-500/20 text-rose-400 flex items-center justify-center text-sm group-hover:scale-105 transition">
+                <i class="fa-solid fa-magnifying-glass-chart"></i>
+              </div>
+              <div class="text-sm font-bold text-white">Investigate Claims</div>
+              <p class="text-[11px] text-slate-400">Diagnose flagged stoichiometric violations and tampering attacks.</p>
+            </button>
+
+            <button onclick="navigateTo('demo')" class="p-4 rounded-xl bg-slate-900/60 hover:bg-slate-800/80 border border-amber-500/30 text-left transition group space-y-1.5">
+              <div class="w-8 h-8 rounded-lg bg-amber-500/20 text-amber-400 flex items-center justify-center text-sm group-hover:scale-105 transition">
+                <i class="fa-solid fa-flask"></i>
+              </div>
+              <div class="text-sm font-bold text-white">Open Demo Lab</div>
+              <p class="text-[11px] text-slate-400">Run automated end-to-end hackathon Scenarios A, B, and C.</p>
+            </button>
+          </div>
+        </div>
+
+        <!-- Provenance Standards Bar -->
+        <div class="flex flex-wrap items-center gap-2 p-3.5 rounded-xl bg-slate-900/40 border border-slate-800/80 text-xs">
+          <span class="font-semibold text-slate-400 mr-1"><i class="fa-solid fa-tag mr-1"></i> Data Provenance Standards:</span>
+          <span class="px-2 py-0.5 rounded-md provenance-measured font-mono text-[10px]">MEASURED (Scale)</span>
+          <span class="px-2 py-0.5 rounded-md provenance-observed font-mono text-[10px]">OBSERVED (Log)</span>
+          <span class="px-2 py-0.5 rounded-md provenance-ai font-mono text-[10px]">AI_ESTIMATED (CV)</span>
+          <span class="px-2 py-0.5 rounded-md provenance-assumed font-mono text-[10px]">REFERENCE_ASSUMED (BoM)</span>
+          <span class="px-2 py-0.5 rounded-md provenance-simulated font-mono text-[10px]">SIMULATED (Fixture)</span>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- MODULE 2: DIGITAL PASSPORTS                                           -->
+      <!-- ===================================================================== -->
+      <section id="view-passports" class="view-panel space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-id-card text-blue-400"></i> Digital Product Passports (DPP)
+            </h2>
+            <p class="text-xs text-slate-400">EU Battery Regulation 2023/1542 conformant product identities and certified Bills of Materials.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="cvResetDemoPassports()" class="px-3 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-xs font-mono border border-amber-500/30 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate-left"></i> Reset Demo DPP
+            </button>
+            <button type="button" onclick="cvLoadPassports()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh
+            </button>
+          </div>
+        </div>
+
+        <!-- Search and Filter Bar -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <div class="relative flex-1">
+            <i class="fa-solid fa-magnifying-glass absolute left-3 top-2.5 text-slate-500 text-xs"></i>
+            <input type="text" id="passports-search-input" oninput="dppFilterList()" placeholder="Filter passports by ID, product, or manufacturer..." class="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-4 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-blue-500/50">
+          </div>
+          <select id="passports-filter-select" onchange="dppFilterList()" class="bg-slate-900 border border-slate-800 rounded-xl px-3 py-2 text-xs font-mono text-slate-300 focus:outline-none">
+            <option value="ALL">All Lifecycle States</option>
+            <option value="RECYCLING_PENDING">RECYCLING_PENDING (Eligible)</option>
+            <option value="MANUFACTURED">MANUFACTURED</option>
+            <option value="FLAGGED">FLAGGED (Quarantine)</option>
+          </select>
+        </div>
+
+        <!-- Passports Master-Detail Layout -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <!-- Left: Passport List -->
+          <div class="lg:col-span-1 space-y-3">
+            <div class="text-xs font-semibold text-slate-400 font-mono uppercase tracking-wider">Registered Passports</div>
+            <div id="passports-list-container" class="space-y-2 max-h-[550px] overflow-y-auto pr-1">
+              <!-- Dynamically populated by dppRenderList() -->
+              <div class="text-xs text-slate-500 p-4 text-center">Loading passports...</div>
+            </div>
+          </div>
+
+          <!-- Right: Selected Passport Detailed Inspector -->
+          <div class="lg:col-span-2 space-y-4">
+            <div id="dpp-inspector-empty" class="hidden p-8 rounded-2xl border border-slate-800 bg-slate-900/40 text-center text-slate-500 text-xs">
+              Select a passport from the left to inspect its identity, Bill of Materials, and lifecycle state.
+            </div>
+
+            <div id="dpp-inspector-card" class="rounded-2xl border border-slate-800 bg-slate-900/60 p-6 space-y-6">
+              <!-- Passport Identity Header -->
+              <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800/80 pb-4">
+                <div>
+                  <div class="flex items-center gap-2">
+                    <span id="dpp-insp-id" class="font-mono font-bold text-white text-sm">DPP-EV-NMC622-2026-M04</span>
+                    <span id="dpp-insp-state-badge" class="px-2.5 py-0.5 rounded-full text-xs font-mono font-bold bg-emerald-500/20 text-emerald-300">RECYCLING_PENDING</span>
+                  </div>
+                  <h3 id="dpp-insp-name" class="text-sm font-semibold text-slate-300 mt-1">VoltMax EV Traction Battery Module NMC 622</h3>
+                </div>
+                <button onclick="dppSelectForVerification()" class="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition flex items-center gap-2 self-start sm:self-center shadow-lg shadow-indigo-600/20">
+                  <i class="fa-solid fa-sliders"></i> Verify in Workbench
+                </button>
+              </div>
+
+              <!-- Metadata Grid -->
+              <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                  <span class="text-slate-500 font-mono text-[10px]">PRODUCT SKU</span>
+                  <div id="dpp-insp-sku" class="font-mono text-slate-200 truncate">SKU-EV-NMC622-48V</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                  <span class="text-slate-500 font-mono text-[10px]">CATEGORY</span>
+                  <div id="dpp-insp-cat" class="font-mono text-slate-200">EV_BATTERY</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                  <span class="text-slate-500 font-mono text-[10px]">MANUFACTURER</span>
+                  <div id="dpp-insp-mfg" class="text-slate-200 truncate">NorthVolt Energy Systems</div>
+                </div>
+                <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 space-y-1">
+                  <span class="text-slate-500 font-mono text-[10px]">INITIAL MASS</span>
+                  <div id="dpp-insp-mass" class="font-mono text-emerald-400 font-bold">25.0 kg</div>
+                </div>
+              </div>
+
+              <!-- Certified Bill of Materials (BoM) Table -->
+              <div class="space-y-2">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-slate-300">Certified Bill of Materials (EU Reg 2023/1542)</span>
+                  <span class="px-2 py-0.5 rounded provenance-assumed text-[10px] font-mono">REFERENCE_ASSUMED</span>
+                </div>
+                <div class="overflow-x-auto border border-slate-800 rounded-xl">
+                  <table class="w-full text-left text-xs">
+                    <thead class="bg-slate-950 text-slate-400 font-mono text-[11px]">
+                      <tr>
+                        <th class="p-2.5">Material Component</th>
+                        <th class="p-2.5">Nominal %</th>
+                        <th class="p-2.5">Expected BAT Recovery</th>
+                        <th class="p-2.5 text-center">Critical Material</th>
+                      </tr>
+                    </thead>
+                    <tbody id="dpp-insp-bom-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+                      <!-- Rendered by JS -->
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+
+              <!-- Lifecycle State Machine Flow -->
+              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+                <div class="flex items-center justify-between text-xs">
+                  <span class="font-semibold text-slate-300">Lifecycle State Machine Tracking</span>
+                  <span class="text-[10px] font-mono text-slate-400">Strict Guard Conditions</span>
+                </div>
+                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
+                  <div id="state-node-manufactured" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                    MANUFACTURED
+                  </div>
+                  <div id="state-node-returned" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                    RETURNED
+                  </div>
+                  <div id="state-node-pending" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                    RECYCLING_PENDING
+                  </div>
+                  <div id="state-node-verified" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                    RECYCLING_VERIFIED
+                  </div>
+                </div>
+                <div class="p-2.5 rounded-lg bg-rose-950/20 border border-rose-500/20 text-[11px] text-rose-300 flex items-center justify-between">
+                  <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-400"></i><strong>Quarantine Rule:</strong> <code>FLAGGED</code> state halts recycling credit and requires authorized audit resolution.</span>
+                  <span id="dpp-flagged-indicator" class="font-mono font-bold text-rose-400 uppercase text-[10px]">Normal</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- MODULE 3: VERIFICATION (Custom Workbench)                             -->
+      <!-- ===================================================================== -->
+      <section id="view-verification" class="view-panel space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-sliders text-indigo-400"></i> Custom Recycling Verification Workbench
+            </h2>
+            <p class="text-xs text-slate-400">Execute end-to-end generic recycling verification with scale tickets, optional AI observation, and closed-form mass-balance.</p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button type="button" onclick="cvResetDemoPassports()" class="px-3 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-xs font-mono border border-amber-500/30 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate-left"></i> Reset Demo DPP
+            </button>
+            <button type="button" onclick="cvLoadPassports()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition flex items-center gap-1.5">
+              <i class="fa-solid fa-arrows-rotate"></i> Refresh DPPs
+            </button>
+          </div>
+        </div>
+
+        <!-- Error banner for validation feedback -->
+        <div id="cv-error-banner" class="hidden p-3 rounded-xl bg-rose-950/60 border border-rose-500/40 text-xs text-rose-200 flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <i class="fa-solid fa-circle-exclamation text-rose-400 text-sm"></i>
+            <span id="cv-error-banner-text">Error details here</span>
+          </div>
+          <button type="button" onclick="cvHideError()" class="text-rose-400 hover:text-white text-xs">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+
+        <!-- Workbench Grid: Input Steps (Left) & Inspector (Right) -->
+        <div id="custom-verification-section" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Left Column: Steps 1, 2, 4, 5 -->
+          <div class="space-y-5">
+            <!-- Step 1: Select DPP -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-mono">1</span>
+                  Select Digital Product Passport (DPP)
+                </span>
+                <span id="cv-dpp-state-badge" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-slate-400">NONE</span>
+              </div>
+              <select id="cv-passport-select" onchange="cvOnPassportChange()" class="w-full bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500">
+                <option value="">Loading passports...</option>
+              </select>
+
+              <!-- DPP Eligibility Alert Box -->
+              <div id="cv-dpp-eligibility-alert" class="p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-slate-950 border border-slate-800 text-slate-400">
+                <div id="cv-dpp-eligibility-text" class="flex items-center">
+                  <i class="fa-solid fa-circle-info mr-1.5 text-slate-400"></i> Loading passport eligibility...
+                </div>
+                <button type="button" id="cv-btn-advance-lifecycle" onclick="cvAdvanceLifecycle()" class="hidden self-start px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-mono text-[11px] border border-amber-500/30 transition">
+                  <i class="fa-solid fa-forward-step mr-1"></i> Transition to RECYCLING_PENDING
+                </button>
+              </div>
+
+              <!-- Compact Product Info Box -->
+              <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80 text-xs space-y-1 font-mono">
+                <div class="flex justify-between text-slate-400">
+                  <span>Product:</span>
+                  <span id="cv-dpp-product" class="text-slate-200 text-right truncate max-w-[240px]">-</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>Category & Mass:</span>
+                  <span id="cv-dpp-category-mass" class="text-slate-200">-</span>
+                </div>
+                <div class="flex justify-between text-slate-400">
+                  <span>Manufacturer:</span>
+                  <span id="cv-dpp-manufacturer" class="text-slate-200 truncate max-w-[240px]">-</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Step 2: Recycling Facility Intake -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-mono">2</span>
+                Recycling Facility Intake
               </span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Facility ID</label>
+                  <input type="text" id="cv-facility-id" value="FAC-EU-ROTTERDAM-01" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                </div>
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Operator ID</label>
+                  <input type="text" id="cv-operator-id" value="OP-7782" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Processing Method</label>
+                  <select id="cv-processing-method" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                    <option value="HYDROMETALLURGICAL" selected>HYDROMETALLURGICAL</option>
+                    <option value="PYROMETALLURGICAL">PYROMETALLURGICAL</option>
+                    <option value="MECHANICAL_PHYSICAL">MECHANICAL_PHYSICAL</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Scale Uncertainty (%)</label>
+                  <input type="number" step="0.1" id="cv-scale-tolerance" value="0.5" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                </div>
+              </div>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Gross Intake Mass (kg)</label>
+                  <input type="number" step="0.1" id="cv-intake-mass" value="1000.0" oninput="cvOnIntakeMassChange()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs font-mono text-emerald-400 font-bold">
+                </div>
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Intake Provenance</label>
+                  <select id="cv-intake-prov" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                    <option value="OBSERVED" selected>OBSERVED (Operator Log)</option>
+                    <option value="MEASURED">MEASURED (Certified Scale)</option>
+                    <option value="SIMULATED">SIMULATED (Test Fixture)</option>
+                  </select>
+                </div>
+              </div>
             </div>
 
-            <select id="cv-passport-select" onchange="cvOnPassportChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500">
-              <option value="">Loading available passports from /api/v1/passports...</option>
-            </select>
-
-            <!-- Passport Details Mini-Card -->
-            <div id="cv-dpp-details" class="space-y-2 text-xs bg-slate-900/50 p-3 rounded-lg border border-slate-800/80">
-              <div class="flex justify-between text-slate-300">
-                <span class="text-slate-400">Product Name:</span>
-                <span id="cv-dpp-product" class="font-medium text-right text-slate-200 truncate max-w-[260px]">-</span>
+            <!-- Step 4: Physical Evidence Upload -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+              <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                <span class="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-mono">4</span>
+                Physical Evidence Upload (Scale Tickets & Photographs)
+              </span>
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Provenance</label>
+                  <select id="cv-upload-prov" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                    <option value="OBSERVED" selected>OBSERVED (Operator Photo)</option>
+                    <option value="MEASURED">MEASURED (Direct Scale Ticket)</option>
+                    <option value="SIMULATED">SIMULATED (Synthetic Test)</option>
+                  </select>
+                </div>
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">Description</label>
+                  <input type="text" id="cv-upload-desc" value="Weighbridge calibration scale ticket" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white">
+                </div>
               </div>
-              <div class="flex justify-between text-slate-300">
-                <span class="text-slate-400">Category & Mass:</span>
-                <span id="cv-dpp-category-mass" class="font-mono text-slate-200">-</span>
-              </div>
-              <div class="flex justify-between text-slate-300">
-                <span class="text-slate-400">Manufacturer:</span>
-                <span id="cv-dpp-manufacturer" class="text-slate-200">-</span>
-              </div>
-            </div>
-
-            <!-- Lifecycle Eligibility Alert -->
-            <div id="cv-dpp-eligibility-alert" class="p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-slate-900 border border-slate-800 text-slate-300">
               <div class="flex items-center gap-2">
-                <i class="fa-solid fa-spinner fa-spin text-indigo-400"></i>
-                <span id="cv-dpp-eligibility-text">Checking passport lifecycle state...</span>
+                <input type="file" id="cv-evidence-files" multiple accept="image/*,application/pdf" class="flex-1 text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-300 hover:file:bg-slate-700">
+                <button type="button" onclick="cvUploadFiles()" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-xs transition">
+                  Upload
+                </button>
+                <button type="button" onclick="cvGenerateSampleEvidence()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono text-xs border border-slate-700 transition" title="Generates a valid test JPEG image ticket automatically">
+                  Quick Slip
+                </button>
               </div>
-              <button id="cv-btn-advance-lifecycle" type="button" onclick="cvAdvanceLifecycle()" class="hidden self-start px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-medium transition">
-                <i class="fa-solid fa-forward mr-1"></i> Advance to RECYCLING_PENDING
-              </button>
+              <div id="cv-evidence-list" class="space-y-1.5 max-h-36 overflow-y-auto">
+                <div class="text-[11px] text-slate-500 italic p-2 border border-slate-800/80 rounded-lg text-center">No physical evidence files uploaded yet.</div>
+              </div>
             </div>
 
-            <!-- Bill of Materials Accordion / Table -->
-            <div class="space-y-1.5 pt-1">
-              <div class="flex justify-between items-center text-[11px] text-slate-400 font-medium">
-                <span>Certified Bill of Materials (BoM Priors)</span>
-                <span class="px-1.5 py-0.5 rounded provenance-assumed text-[9px]">REFERENCE_ASSUMED</span>
+            <!-- Step 5: Optional AI Observation -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-purple-500/20 text-purple-400 flex items-center justify-center text-[10px] font-mono">5</span>
+                  AI Computer Vision Observation
+                </span>
+                <label class="relative inline-flex items-center cursor-pointer">
+                  <input type="checkbox" id="cv-ai-toggle" onchange="cvToggleAI()" class="sr-only peer" checked>
+                  <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                </label>
               </div>
-              <div class="max-h-36 overflow-y-auto border border-slate-800 rounded-lg">
-                <table class="w-full text-left text-[11px]">
-                  <thead class="bg-slate-900 text-slate-400 font-mono sticky top-0">
+              <div id="cv-ai-mode-row" class="space-y-3 pt-1">
+                <div>
+                  <label class="block text-slate-400 text-[11px] mb-1">AI Execution Mode</label>
+                  <select id="cv-ai-force-mode" onchange="cvOnAIModeChange()" class="w-full bg-slate-950 border border-slate-700 rounded-lg px-2.5 py-1.5 text-xs text-white font-mono">
+                    <option value="DETERMINISTIC_FIXTURE" selected>SIMULATED / DETERMINISTIC FIXTURE (Simulated Provenance)</option>
+                    <option value="LIVE_GEMINI">LIVE GEMINI (Multimodal API Inference)</option>
+                  </select>
+                </div>
+                <div id="cv-ai-mode-card" class="p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 space-y-1 font-mono">
+                  <div class="flex items-center justify-between">
+                    <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-800 text-slate-300 border border-slate-600">SIMULATED / DETERMINISTIC FIXTURE</span>
+                    <span class="text-slate-400 text-[10px]">Provenance: <strong class="text-slate-300">SIMULATED</strong></span>
+                  </div>
+                  <p class="text-[11px] text-slate-400">
+                    Uses replayable simulated AI output for offline, reproducible testing. Uploaded evidence is not sent to Gemini in this mode.
+                  </p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Right Column: Step 3 (Materials Table) & Step 6 (Execute) -->
+          <div class="space-y-5">
+            <!-- Step 3: Declared Recovered Materials Table -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-200 flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-indigo-500/20 text-indigo-400 flex items-center justify-center text-[10px] font-mono">3</span>
+                  Recovered Material Claims
+                </span>
+                <div class="flex items-center gap-2">
+                  <button type="button" onclick="cvPrefillNominal()" class="text-[11px] px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-mono transition">
+                    Prefill BoM
+                  </button>
+                  <button type="button" onclick="cvAddMaterialRow()" class="text-[11px] px-2 py-1 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-mono transition">
+                    + Add Row
+                  </button>
+                </div>
+              </div>
+
+              <div class="overflow-x-auto border border-slate-800 rounded-xl">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-950 text-slate-400 font-mono text-[11px]">
+                    <tr>
+                      <th class="p-2">Material</th>
+                      <th class="p-2">Claim (kg)</th>
+                      <th class="p-2">Purity %</th>
+                      <th class="p-2">Provenance</th>
+                      <th class="p-2 text-center">Action</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cv-materials-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+                    <!-- Populated by JS -->
+                  </tbody>
+                </table>
+              </div>
+
+              <div class="flex items-center justify-between p-2 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono">
+                <span class="text-slate-400">Total Claimed Recovery:</span>
+                <span id="cv-claimed-total-sum" class="font-bold text-emerald-400">0.00 kg</span>
+              </div>
+            </div>
+
+            <!-- BoM Reference Table from Selected DPP -->
+            <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/40 space-y-2">
+              <div class="flex items-center justify-between text-xs text-slate-400">
+                <span class="font-semibold text-slate-300">Reference BoM Envelope for Selected DPP</span>
+                <span class="text-[10px] font-mono provenance-assumed px-2 py-0.5 rounded">REFERENCE_ASSUMED</span>
+              </div>
+              <div class="overflow-x-auto border border-slate-800/80 rounded-xl">
+                <table class="w-full text-left text-xs">
+                  <thead class="bg-slate-950 text-slate-400 font-mono text-[10px]">
                     <tr>
                       <th class="p-1.5">Material</th>
                       <th class="p-1.5">Nominal %</th>
                       <th class="p-1.5">BAT Yield</th>
-                      <th class="p-1.5">Critical</th>
+                      <th class="p-1.5 text-center">Critical</th>
                     </tr>
                   </thead>
-                  <tbody id="cv-dpp-bom-tbody" class="divide-y divide-slate-800 text-slate-300">
-                    <tr><td colspan="4" class="p-2 text-center text-slate-500">Select a passport to view components</td></tr>
+                  <tbody id="cv-dpp-bom-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+                    <!-- Populated by cvOnPassportChange() -->
                   </tbody>
                 </table>
               </div>
             </div>
-          </div>
 
-          <!-- Step 2: Intake Gross Mass & Event Info -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-              <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">2</span>
-              Recycling Intake & Weighbridge Measurements
-            </label>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label class="block text-slate-400 mb-1">Facility ID:</label>
-                <input id="cv-facility-id" type="text" value="FAC-EU-ROTTERDAM-01" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
+            <!-- Step 6: Execute Verification Action -->
+            <div class="p-5 rounded-2xl border border-indigo-500/30 bg-indigo-950/20 space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-white flex items-center gap-2">
+                  <span class="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] font-mono">6</span>
+                  Execute Verification Pipeline
+                </span>
+                <input type="text" id="cv-custom-event-id" placeholder="Optional Event ID" class="w-36 bg-slate-950 border border-slate-700 rounded px-2 py-1 text-[11px] font-mono text-slate-300">
               </div>
-              <div>
-                <label class="block text-slate-400 mb-1">Operator ID:</label>
-                <input id="cv-operator-id" type="text" value="OP-7782" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label class="block text-slate-400 mb-1">Processing Method:</label>
-                <select id="cv-processing-method" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
-                  <option value="HYDROMETALLURGICAL" selected>HYDROMETALLURGICAL</option>
-                  <option value="PYROMETALLURGICAL">PYROMETALLURGICAL</option>
-                  <option value="MECHANICAL_PHYSICAL">MECHANICAL_PHYSICAL</option>
-                  <option value="DIRECT_RECYCLING">DIRECT_RECYCLING</option>
-                </select>
-              </div>
-              <div>
-                <label class="block text-slate-400 mb-1">Scale Uncertainty (±%):</label>
-                <input id="cv-scale-tolerance" type="number" step="0.1" min="0.0" max="5.0" value="0.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div>
-                <label class="block text-slate-400 mb-1">Intake Gross Mass (kg):</label>
-                <input id="cv-intake-mass" type="number" step="0.1" min="0.1" value="1000.0" onchange="cvOnIntakeMassChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-emerald-300 font-bold focus:outline-none focus:border-indigo-500">
-              </div>
-              <div>
-                <label class="block text-slate-400 mb-1">Intake Mass Provenance:</label>
-                <select id="cv-intake-prov" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
-                  <option value="OBSERVED" selected>OBSERVED (Facility Operator Log)</option>
-                  <option value="MEASURED">MEASURED (Certified Weighbridge Scale)</option>
-                  <option value="SIMULATED">SIMULATED (Bench Test)</option>
-                </select>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Column 2: Claimed Materials, Evidence Upload & AI -->
-        <div class="space-y-5">
-          <!-- Step 3: Claimed Recovered Secondary Materials -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">3</span>
-                Declared Recovered Secondary Materials
-              </label>
-              <div class="flex items-center gap-2">
-                <button type="button" onclick="cvPrefillNominal()" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 transition">
-                  <i class="fa-solid fa-wand-magic mr-1"></i> Prefill BAT Yields
-                </button>
-                <button type="button" onclick="cvAddMaterialRow()" class="text-[11px] px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition">
-                  <i class="fa-solid fa-plus mr-1"></i> Add Material
-                </button>
-              </div>
-            </div>
-
-            <div class="max-h-48 overflow-y-auto border border-slate-800 rounded-lg">
-              <table class="w-full text-left text-xs">
-                <thead class="bg-slate-900 text-slate-400 font-mono text-[11px] sticky top-0">
-                  <tr>
-                    <th class="p-1.5">Material</th>
-                    <th class="p-1.5">Claimed (kg)</th>
-                    <th class="p-1.5">Purity %</th>
-                    <th class="p-1.5">Provenance</th>
-                    <th class="p-1.5 text-center">Del</th>
-                  </tr>
-                </thead>
-                <tbody id="cv-materials-tbody" class="divide-y divide-slate-800 text-slate-300">
-                  <!-- Populated dynamically -->
-                </tbody>
-              </table>
-            </div>
-            <div class="flex justify-between items-center text-xs font-mono text-slate-400 pt-1">
-              <span>Total Claimed Recovery:</span>
-              <span id="cv-claimed-total-sum" class="font-bold text-white">0.00 kg</span>
-            </div>
-          </div>
-
-          <!-- Step 4: Physical Evidence Upload -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">4</span>
-                Physical Evidence Upload (MIME, SHA-256 & RFC 8785)
-              </label>
-              <button type="button" onclick="cvGenerateSampleEvidence()" class="text-[11px] px-2 py-0.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 font-mono transition">
-                <i class="fa-solid fa-file-arrow-up mr-1"></i> Quick Test Slip
-              </button>
-            </div>
-
-            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
-              <div class="sm:col-span-2">
-                <input id="cv-evidence-files" type="file" multiple accept="image/*,application/pdf" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
-              </div>
-              <div>
-                <select id="cv-upload-prov" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 font-mono text-white text-xs">
-                  <option value="OBSERVED" selected>OBSERVED</option>
-                  <option value="MEASURED">MEASURED</option>
-                  <option value="SIMULATED">SIMULATED</option>
-                </select>
-              </div>
-            </div>
-
-            <div class="flex gap-2">
-              <input id="cv-upload-desc" type="text" placeholder="Optional description (e.g. Weighbridge intake receipt)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
-              <button type="button" onclick="cvUploadFiles()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition">
-                Upload
-              </button>
-            </div>
-
-            <!-- Uploaded Evidence Files List -->
-            <div id="cv-evidence-list" class="space-y-1.5 max-h-32 overflow-y-auto">
-              <div class="text-[11px] text-slate-500 italic p-2 border border-slate-800/80 rounded-lg text-center">
-                No physical evidence files uploaded yet. Upload a receipt or click "Quick Test Slip".
-              </div>
-            </div>
-          </div>
-
-          <!-- Step 5: Optional AI Observation & Submit -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <div class="flex items-center justify-between">
-              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
-                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">5</span>
-                Optional Dual-Mode AI Observation
-              </label>
-              <label class="relative inline-flex items-center cursor-pointer">
-                <input id="cv-ai-toggle" type="checkbox" onchange="cvToggleAI()" class="sr-only peer">
-                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
-                <span class="ml-2 text-xs font-mono text-purple-300">Run AI</span>
-              </label>
-            </div>
-
-            <!-- AI Notice (Always Visible) -->
-            <div class="p-2.5 rounded-lg bg-purple-950/30 border border-purple-500/20 text-[11px] text-purple-300">
-              <i class="fa-solid fa-shield-halved mr-1"></i>
-              <strong>AI observes evidence; deterministic verification makes the decision.</strong>
-              <div class="text-purple-400/80 text-[10px] mt-0.5">Computer vision tags output as AI_ESTIMATED. It NEVER determines the verification verdict.</div>
-            </div>
-
-            <!-- AI Mode Selector (Shown when enabled) -->
-            <div id="cv-ai-mode-row" class="hidden space-y-2 pt-1">
-              <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs">
-                <div>
-                  <label class="block text-slate-400 mb-1">Execution Mode:</label>
-                  <select id="cv-ai-force-mode" onchange="cvOnAIModeChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs">
-                    <option value="DETERMINISTIC_FIXTURE" selected>DETERMINISTIC_FIXTURE (SIMULATED)</option>
-                    <option value="LIVE_GEMINI">LIVE_GEMINI (Google Gemini Multimodal)</option>
-                  </select>
-                </div>
-                <div>
-                  <label class="block text-slate-400 mb-1">Custom Event ID (Optional):</label>
-                  <input id="cv-custom-event-id" type="text" placeholder="Auto-generated if empty" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none focus:border-indigo-500">
-                </div>
-              </div>
-
-              <!-- AI Mode Explanatory Card (Change 3) -->
-              <div id="cv-ai-mode-card" class="p-2.5 rounded-lg border text-xs font-mono space-y-1">
-                <!-- Populated dynamically via cvOnAIModeChange() -->
-              </div>
-            </div>
-
-            <!-- In-Page Error Banner -->
-            <div id="cv-error-banner" class="hidden p-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex items-start gap-2">
-              <i class="fa-solid fa-circle-exclamation text-rose-400 mt-0.5"></i>
-              <div id="cv-error-banner-text" class="flex-1 font-mono"></div>
-              <button type="button" onclick="cvHideError()" class="text-rose-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
-            </div>
-
-            <!-- Verification Action Button -->
-            <div class="pt-2">
-              <button id="cv-btn-submit" type="button" onclick="cvSubmitVerification()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:from-indigo-500 hover:to-teal-400 text-white font-bold text-sm tracking-wide shadow-lg shadow-indigo-500/20 active:scale-95 transition flex items-center justify-center gap-2">
+              <button type="button" id="cv-btn-submit" onclick="cvSubmitVerification()" class="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-500 hover:from-emerald-500 hover:to-teal-400 text-white font-bold text-sm shadow-xl shadow-emerald-600/20 active:scale-[0.99] transition flex items-center justify-center gap-2">
                 <i class="fa-solid fa-atom"></i> Execute Custom Recycling Verification
               </button>
             </div>
           </div>
         </div>
 
-      </div>
-
-      <!-- Execution Audit Result Banner (Initially Hidden) -->
-      <div id="cv-result-container" class="hidden mt-6 pt-6 border-t border-indigo-500/30 space-y-5">
-        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-950 border border-slate-800">
-          <div class="space-y-0.5">
-            <div class="flex items-center gap-2">
-              <h3 class="text-base font-bold text-white flex items-center gap-2">
-                <i class="fa-solid fa-clipboard-check text-indigo-400"></i> Verification Audit Result
-              </h3>
-              <span id="cv-res-event-id" class="text-xs font-mono text-slate-400">REV-2026-CUSTOM</span>
+        <!-- =================================================================== -->
+        <!-- VERIFICATION RESULT COMPONENT (Shown after Execution)                -->
+        <!-- =================================================================== -->
+        <div id="cv-result-container" class="hidden rounded-2xl border border-slate-800 bg-slate-900/90 p-6 shadow-2xl space-y-6">
+          <!-- Result Top Header Banner -->
+          <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+            <div>
+              <div class="flex items-center gap-2">
+                <span class="text-xs font-mono text-slate-400">EVENT ID:</span>
+                <span id="cv-res-event-id" class="text-sm font-mono font-bold text-white">-</span>
+              </div>
+              <div class="text-xs text-slate-400 font-mono mt-0.5">
+                DPP: <span id="cv-res-passport-id" class="text-slate-200 font-semibold">-</span> | State: <span id="cv-res-lifecycle-state" class="text-slate-300 font-semibold">-</span>
+              </div>
             </div>
-            <div class="text-xs text-slate-400">
-              Target Passport: <span id="cv-res-passport-id" class="font-mono text-slate-200">DPP-...</span> |
-              Lifecycle State: <span id="cv-res-lifecycle-state" class="font-mono text-emerald-400 font-bold">-</span>
+
+            <!-- Distinct Indicator Badges -->
+            <div class="flex flex-wrap items-center gap-2.5">
+              <div class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono">
+                <span class="text-slate-500 text-[10px] block">MASS BALANCE</span>
+                <span id="cv-res-header-mb-badge" class="font-bold text-slate-300">-</span>
+              </div>
+              <div class="px-2.5 py-1 rounded-lg bg-slate-950 border border-slate-800 text-xs font-mono">
+                <span class="text-slate-500 text-[10px] block">EVIDENCE</span>
+                <span id="cv-res-header-int-badge" class="font-bold text-slate-300">-</span>
+              </div>
+              <div class="px-3 py-1 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono">
+                <span class="text-slate-500 text-[10px] block">OVERALL</span>
+                <span id="cv-res-overall-verdict" class="font-extrabold text-sm uppercase text-slate-300">-</span>
+              </div>
             </div>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <!-- 3 Distinct Semantic Dimensions (Change 1) -->
-            <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">
-              <span class="text-slate-400">Mass Balance:</span>
-              <span id="cv-res-header-mb-badge" class="font-bold text-emerald-300">VALID</span>
-            </div>
-            <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">
-              <span class="text-slate-400">Evidence Integrity:</span>
-              <span id="cv-res-header-int-badge" class="font-bold text-emerald-300">VERIFIED</span>
-            </div>
-            <div class="flex items-center gap-1.5 px-3 py-1 rounded-lg bg-slate-900 border border-slate-800 text-xs font-mono">
-              <span class="text-slate-400">Overall:</span>
-              <span id="cv-res-overall-verdict" class="px-2.5 py-0.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono">
-                VERIFIED
-              </span>
-            </div>
-          </div>
-        </div>
 
-        <!-- 4 Core Result Cards -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <!-- Card 1: Mass Balance Outcome (Enhanced per Change 1) -->
+          <!-- Claim-by-Claim Breakdown Card -->
           <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-300 font-bold uppercase tracking-wider font-mono">MASS BALANCE GATE</span>
-              <span id="cv-res-mb-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300">VALID</span>
-            </div>
-            <div class="text-xs space-y-1 font-mono text-slate-300 bg-slate-900/60 p-2 rounded-lg border border-slate-800/80">
-              <div class="flex justify-between">
-                <span class="text-slate-400">Intake Mass:</span>
-                <span id="cv-res-mb-intake" class="font-bold text-slate-200">1000.0 kg</span>
+            <div class="flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-list-check text-indigo-400 text-sm"></i>
+                <h4 class="text-xs font-bold text-white uppercase tracking-wider font-mono">Claim-by-Claim Verification Breakdown</h4>
               </div>
-              <div class="flex justify-between">
-                <span class="text-slate-400">Claimed Recovery:</span>
-                <span id="cv-res-mb-claimed" class="font-bold text-white">541.3 kg</span>
-              </div>
+              <span class="text-[10px] font-mono text-slate-400">Evaluated Against Stoichiometric & BAT Bounds</span>
             </div>
+            <div id="cv-res-mb-breakdown-list" class="space-y-1.5">
+              <!-- Dynamically populated rows with status pills -->
+            </div>
+          </div>
 
-            <!-- Claim-Level Breakdown (Change 1) -->
-            <div class="space-y-1.5 pt-1 border-t border-slate-800/80">
-              <div class="flex justify-between items-center text-[10px] font-semibold text-slate-400 uppercase tracking-wider font-mono">
-                <span>Claim-Level Breakdown</span>
-                <span class="text-[9px] text-slate-500">Stoichiometric Gate</span>
+          <!-- 4 Core Sub-Result Cards -->
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- Card 1: Mass Balance Gate -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-slate-400">Mass Balance Gate</span>
+                <span id="cv-res-mb-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px]">-</span>
               </div>
-              <div id="cv-res-mb-breakdown-list" class="space-y-1 max-h-36 overflow-y-auto pr-0.5">
-                <!-- Dynamically populated: ✓ Cobalt 55.80 kg VALID / ✕ Apple 11.30 kg IMPOSSIBLE -->
+              <div class="font-mono text-slate-300 space-y-0.5 text-[11px]">
+                <div>Intake: <span id="cv-res-mb-intake" class="text-white font-bold">-</span></div>
+                <div>Claimed: <span id="cv-res-mb-claimed" class="text-white font-bold">-</span></div>
               </div>
-            </div>
-
-            <!-- Concise Mathematical Explanation Block (Change 1) -->
-            <div class="pt-1.5 border-t border-slate-800/80">
-              <div class="text-[10px] font-semibold text-slate-400 mb-1 font-mono uppercase">Explanation:</div>
-              <div id="cv-res-mb-explanation-box" class="p-2 rounded bg-slate-900 border border-slate-800 text-[10px] font-mono text-slate-300 whitespace-pre-wrap leading-relaxed max-h-24 overflow-y-auto">
+              <div id="cv-res-mb-explanation-box" class="p-2 rounded bg-slate-900 border border-slate-800/80 text-[10px] font-mono text-slate-300 whitespace-pre-wrap max-h-24 overflow-y-auto">
                 -
               </div>
             </div>
+
+            <!-- Card 2: Evidence Integrity -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-slate-400">Evidence Integrity</span>
+                <span id="cv-res-integrity-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px]">-</span>
+              </div>
+              <div class="font-mono text-slate-300 text-[10px] space-y-0.5 truncate">
+                <div class="truncate">Manifest: <span id="cv-res-manifest-hash" class="text-slate-400">-</span></div>
+                <div class="truncate">Commitment: <span id="cv-res-commitment-hash" class="text-teal-400 font-bold">-</span></div>
+              </div>
+              <p id="cv-res-integrity-msg" class="text-[10px] text-slate-400 italic">-</p>
+            </div>
+
+            <!-- Card 3: Blockchain Anchor -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-slate-400">Ledger Anchor</span>
+                <span id="cv-res-blockchain-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px]">-</span>
+              </div>
+              <div class="font-mono text-slate-300 text-[10px] space-y-0.5">
+                <div>Network: <span class="text-emerald-400 font-bold">LOCAL TESTNET</span></div>
+                <div class="truncate">Tx: <span id="cv-res-blockchain-tx" class="text-slate-400">-</span></div>
+              </div>
+            </div>
+
+            <!-- Card 4: PoR Certificate -->
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2 text-xs">
+              <div class="flex items-center justify-between">
+                <span class="font-semibold text-slate-400">Proof-of-Recycling</span>
+                <span id="cv-res-cert-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px]">-</span>
+              </div>
+              <div class="font-mono text-slate-300 text-[10px] space-y-0.5">
+                <div class="truncate">ID: <span id="cv-res-cert-id" class="text-teal-300 font-bold">-</span></div>
+                <div class="truncate">Hash: <span id="cv-res-cert-hash" class="text-slate-400">-</span></div>
+              </div>
+              <div id="cv-res-cert-action" class="pt-1">
+                <!-- Verified button or blocked label -->
+              </div>
+            </div>
           </div>
 
-          <!-- Card 2: Evidence Integrity -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-medium">Evidence Integrity</span>
-              <span id="cv-res-integrity-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300">VERIFIED</span>
+          <!-- Verified Quantities Table (If Certificate Issued) -->
+          <div id="cv-res-cert-details-card" class="hidden p-4 rounded-xl bg-slate-950 border border-teal-500/30 space-y-2 text-xs font-mono">
+            <div class="flex items-center justify-between text-teal-400 font-bold">
+              <span>Verified Material Quantities (EU Battery Regulation 2023/1542)</span>
+              <span class="text-[10px] font-normal text-slate-400">Recovered Yields Calculated</span>
             </div>
-            <div class="text-xs space-y-1 font-mono text-slate-300">
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Manifest:</span>
-                <span id="cv-res-manifest-hash" class="truncate max-w-[130px]">0x...</span>
-              </div>
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Commitment:</span>
-                <span id="cv-res-commitment-hash" class="truncate max-w-[130px]">0x...</span>
-              </div>
+            <div class="overflow-x-auto border border-slate-800 rounded-lg">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-900 text-slate-400 text-[10px]">
+                  <tr>
+                    <th class="p-1.5">Material</th>
+                    <th class="p-1.5">Recovered Mass</th>
+                    <th class="p-1.5">Purity</th>
+                    <th class="p-1.5">Recovery Yield</th>
+                  </tr>
+                </thead>
+                <tbody id="cv-res-cert-materials-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+                  <!-- Populated by JS -->
+                </tbody>
+              </table>
             </div>
-            <div class="text-[11px] text-slate-400 line-clamp-2" id="cv-res-integrity-msg">All digests verified against physical disk records.</div>
           </div>
 
-          <!-- Card 3: Blockchain Anchor -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-medium">Ledger Anchor</span>
-              <span id="cv-res-blockchain-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300">ANCHORED</span>
+          <!-- AI Observation Summary Card (If Enabled) -->
+          <div id="cv-res-ai-card" class="hidden p-4 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs space-y-2">
+            <div class="flex items-center justify-between">
+              <span class="font-semibold text-purple-300 flex items-center gap-1.5">
+                <i class="fa-solid fa-microchip"></i> AI Computer Vision Observation Log
+              </span>
+              <span id="cv-res-ai-badge" class="px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 font-bold">AI_ESTIMATED</span>
             </div>
-            <div class="text-xs space-y-1 font-mono text-slate-300">
+            <div id="cv-res-ai-details" class="font-mono text-[11px] text-slate-300 space-y-1">
+              <!-- Populated by JS -->
+            </div>
+          </div>
+
+          <!-- Full Closed-Form Mathematical Proof -->
+          <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono text-slate-400 space-y-1">
+            <span class="font-bold text-slate-300">// Complete Closed-Form Stoichiometric Audit Trail:</span>
+            <div id="cv-res-math-proof" class="text-[10px] whitespace-pre-wrap text-slate-400 overflow-x-auto max-h-40">
+              -
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- MODULE 4: EVIDENCE & AI                                               -->
+      <!-- ===================================================================== -->
+      <section id="view-evidence" class="view-panel space-y-6 hidden">
+        <div class="border-b border-slate-800 pb-4">
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-brain text-purple-400"></i> Evidence Integrity & AI Observation Audit
+          </h2>
+          <p class="text-xs text-slate-400">Audit physical evidence artifacts, cryptographic SHA-256 digests, canonical manifest commitments, and computer vision observation logs.</p>
+        </div>
+
+        <!-- Trust Segregation Rule (ADR-001) -->
+        <div class="p-4 rounded-xl bg-purple-950/30 border border-purple-500/30 text-xs text-purple-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-0.5">
+            <div class="font-bold text-purple-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation text-purple-400"></i> AI Trust Boundary (ADR-001 Pillar 2)
+            </div>
+            <p class="text-[11px] text-purple-200/90">
+              AI observes physical evidence. AI does not determine the verification verdict. Closed-form mass-balance and cryptographic commitments make all decisions.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded-md bg-purple-900/60 font-mono text-[10px] text-purple-300 self-start sm:self-center shrink-0">
+            PROVENANCE: AI_ESTIMATED
+          </span>
+        </div>
+
+        <!-- Cryptographic Integrity Chain Flow Diagram -->
+        <div class="rounded-xl border border-slate-800 bg-slate-900/50 p-5 space-y-3">
+          <div class="text-xs font-semibold text-slate-300">Evidence Commitment Pipeline Flow</div>
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono text-slate-300">
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center flex-1 min-w-[120px]">
+              <div class="text-slate-500 text-[9px]">STEP 1</div>
+              <div class="font-bold">Raw Files</div>
+              <div class="text-[10px] text-slate-400">MIME Checked</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-600 text-xs hidden sm:block"></i>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center flex-1 min-w-[120px]">
+              <div class="text-slate-500 text-[9px]">STEP 2</div>
+              <div class="font-bold">SHA-256</div>
+              <div class="text-[10px] text-slate-400">Per-File Digests</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-600 text-xs hidden sm:block"></i>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center flex-1 min-w-[120px]">
+              <div class="text-slate-500 text-[9px]">STEP 3</div>
+              <div class="font-bold">RFC 8785 Manifest</div>
+              <div class="text-[10px] text-slate-400">Canonical JSON</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-600 text-xs hidden sm:block"></i>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center flex-1 min-w-[120px]">
+              <div class="text-slate-500 text-[9px]">STEP 4</div>
+              <div class="font-bold">Bundle Keccak-256</div>
+              <div class="text-[10px] text-teal-400 font-bold">Commitment Hash</div>
+            </div>
+            <i class="fa-solid fa-arrow-right text-slate-600 text-xs hidden sm:block"></i>
+            <div class="p-2.5 rounded-lg bg-slate-950 border border-slate-800 text-center flex-1 min-w-[120px]">
+              <div class="text-slate-500 text-[9px]">STEP 5</div>
+              <div class="font-bold">EVM Ledger</div>
+              <div class="text-[10px] text-emerald-400 font-bold">Anchored On-Chain</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Evidence Inspection & AI Audit Panels -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left: Inspected Evidence Files -->
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-folder-open text-indigo-400"></i> Session Inspected Evidence Files
+              </span>
+              <span id="evidence-audit-count" class="text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300">0 Files</span>
+            </div>
+            <div id="evidence-audit-list" class="space-y-2 max-h-72 overflow-y-auto">
+              <div class="text-xs text-slate-500 italic p-4 text-center border border-slate-800/80 rounded-xl">
+                No evidence files inspected yet. Upload files in the Verification tab or run Scenario A in Demo Lab.
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: AI Observation Audit -->
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-microchip text-purple-400"></i> AI Observation Logs
+              </span>
+              <span id="ai-audit-mode-badge" class="text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-500/30">Dual-Mode</span>
+            </div>
+            <div id="ai-audit-container" class="space-y-2 text-xs font-mono">
+              <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-1.5 text-slate-400">
+                <div class="text-slate-300 font-semibold text-xs">Latest AI Inference Session:</div>
+                <div class="flex justify-between"><span>Model / Provider:</span> <span id="ai-audit-model" class="text-purple-300 font-bold">Gemini 2.0 Flash / Fixture</span></div>
+                <div class="flex justify-between"><span>Observed Units:</span> <span id="ai-audit-units" class="text-white">40 Units</span></div>
+                <div class="flex justify-between"><span>Model Confidence:</span> <span id="ai-audit-conf" class="text-purple-400">96.5%</span></div>
+                <div class="flex justify-between"><span>Provenance:</span> <span id="ai-audit-prov" class="text-slate-300">AI_ESTIMATED</span></div>
+              </div>
+              <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+                <i class="fa-solid fa-circle-info mr-1 text-slate-500"></i>
+                AI observations furnish feature priors and unit estimates only. An adversary cannot bypass mass-balance by fabricating visually convincing photos.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- MODULE 5: BLOCKCHAIN & PoR                                            -->
+      <!-- ===================================================================== -->
+      <section id="view-blockchain" class="view-panel space-y-6 hidden">
+        <div class="border-b border-slate-800 pb-4">
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-cube text-teal-400"></i> Blockchain Ledger & Proof-of-Recycling (PoR)
+          </h2>
+          <p class="text-xs text-slate-400">Inspect immutable evidence commitments, blockchain transaction hashes, and verify Proof-of-Recycling certificates live on-chain.</p>
+        </div>
+
+        <!-- Network Truthfulness Notice (Section R5) -->
+        <div class="p-4 rounded-xl bg-slate-900 border border-emerald-500/30 text-xs text-slate-300 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-0.5">
+            <div class="font-bold text-emerald-400 flex items-center gap-1.5 font-mono">
+              <span class="h-2 w-2 rounded-full bg-emerald-500"></span>
+              BLOCKCHAIN NETWORK: LOCAL TESTNET (Chain ID: 31337)
+            </div>
+            <p class="text-[11px] text-slate-400">
+              Anchored to a local EVM development node (Anvil/Hardhat). All hashes and state are truthful on-chain representations. Never presented as public mainnet infrastructure.
+            </p>
+          </div>
+          <span class="px-2.5 py-1 rounded bg-emerald-500/10 text-emerald-300 font-mono text-[10px] font-bold border border-emerald-500/20 shrink-0">
+            STATUS: SYNCHRONIZED
+          </span>
+        </div>
+
+        <!-- Blockchain & Certificate Verification Cards -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left: On-Chain Commitments Card -->
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-link text-teal-400"></i> Anchored Evidence Commitments
+              </span>
+              <span class="text-[10px] font-mono text-emerald-400">Local EVM State</span>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs space-y-2.5 text-slate-300">
               <div class="flex justify-between">
                 <span class="text-slate-500">Network:</span>
-                <span class="text-emerald-400">LOCAL TESTNET</span>
+                <span class="text-emerald-400 font-bold">LOCAL TESTNET (31337)</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Latest Tx Hash:</span>
+                <span id="bc-view-tx" class="text-slate-300 truncate max-w-[220px]">0x7b1928cf6a18d...</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Evidence Commitment:</span>
+                <span id="bc-view-commitment" class="text-teal-400 font-bold truncate max-w-[220px]">0x56a64483713f0449...</span>
               </div>
               <div class="flex justify-between">
-                <span class="text-slate-500">Chain ID:</span>
-                <span id="cv-res-blockchain-chain" class="text-slate-300">31337</span>
-              </div>
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Commitment:</span>
-                <span id="cv-res-blockchain-commitment" class="truncate max-w-[120px] font-mono">-</span>
-              </div>
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Tx Hash:</span>
-                <span id="cv-res-blockchain-tx" class="truncate max-w-[120px] font-mono">-</span>
+                <span class="text-slate-500">EVM Contract Registry:</span>
+                <span class="text-slate-400">0x5FbDB...aa3</span>
               </div>
             </div>
-            <div class="text-[10px] text-slate-500 font-mono">Chain ID: 31337 | Immutable Proof</div>
+
+            <p class="text-[11px] text-slate-400 leading-relaxed">
+              Every verified recycling event commits its canonical manifest hash to the smart contract via <code class="text-slate-200">anchorEvidence()</code>. A single altered byte produces an unresolvable cryptographic discrepancy.
+            </p>
           </div>
 
-          <!-- Card 4: Proof-of-Recycling Certificate -->
-          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-            <div class="flex justify-between items-center text-xs">
-              <span class="text-slate-400 font-medium">Proof-of-Recycling (PoR)</span>
-              <span id="cv-res-cert-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-teal-500/20 text-teal-300">ISSUED</span>
+          <!-- Right: Interactive Certificate On-Chain Verification -->
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-certificate text-teal-400"></i> Proof-of-Recycling (PoR) Verification
+              </span>
+              <span class="text-[10px] font-mono text-teal-300">EU Compliant</span>
             </div>
-            <div class="text-xs space-y-1 font-mono text-slate-300">
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Cert ID:</span>
-                <span id="cv-res-cert-id" class="text-teal-400 truncate max-w-[140px] font-bold">-</span>
-              </div>
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Cert Hash:</span>
-                <span id="cv-res-cert-hash" class="truncate max-w-[130px] font-mono">-</span>
-              </div>
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Event ID:</span>
-                <span id="cv-res-cert-event-id" class="truncate max-w-[130px] font-mono text-slate-300">-</span>
-              </div>
-              <div class="flex justify-between truncate">
-                <span class="text-slate-500">Tx Ref:</span>
-                <span id="cv-res-cert-tx-ref" class="truncate max-w-[130px] font-mono text-slate-300">-</span>
-              </div>
-            </div>
-            <div id="cv-res-cert-action">
-              <button id="cv-btn-verify-cert" type="button" onclick="cvVerifyCertificateLive()" class="w-full text-center text-[10px] px-2 py-1 rounded bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/30 transition font-mono">
-                <i class="fa-solid fa-arrows-rotate mr-1"></i> Verify Certificate On-Chain
+
+            <div class="flex gap-2">
+              <input type="text" id="bc-cert-input" placeholder="Enter Certificate ID..." class="flex-1 bg-slate-950 border border-slate-700 rounded-xl px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-teal-500">
+              <button type="button" onclick="bcVerifyCertificate()" class="px-4 py-2 rounded-xl bg-teal-600 hover:bg-teal-500 text-white font-medium text-xs font-mono transition flex items-center gap-1.5">
+                <i class="fa-solid fa-arrows-rotate"></i> Verify On-Chain
               </button>
             </div>
-          </div>
-        </div>
 
-        <!-- Verified Materials & Certificate Details Section (if issued) -->
-        <div id="cv-res-cert-details-card" class="hidden p-4 rounded-xl bg-teal-950/20 border border-teal-500/30 space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-semibold text-teal-300 flex items-center gap-1.5 font-mono">
-              <i class="fa-solid fa-certificate"></i> Proof-of-Recycling Verified Material Quantities & Audit Record
-            </span>
-            <span class="px-2 py-0.5 rounded font-mono text-[10px] bg-teal-500/20 text-teal-300 font-bold">VERIFIED OUTPUT</span>
-          </div>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono text-teal-200/90 pt-1">
-            <div><strong>Passport ID:</strong> <span id="cv-res-cert-passport-id">-</span></div>
-            <div><strong>Evidence Commitment:</strong> <span id="cv-res-cert-commitment" class="truncate block max-w-full">-</span></div>
-          </div>
-          <div class="overflow-x-auto pt-1">
-            <table class="w-full text-left text-xs font-mono">
-              <thead class="bg-slate-900/80 text-teal-300 text-[11px]">
-                <tr>
-                  <th class="p-1.5">Material</th>
-                  <th class="p-1.5">Recovered Mass</th>
-                  <th class="p-1.5">Assayed Purity</th>
-                  <th class="p-1.5">Recovery Yield</th>
-                </tr>
-              </thead>
-              <tbody id="cv-res-cert-materials-tbody" class="divide-y divide-teal-900/40 text-slate-200 text-[11px]">
-              </tbody>
-            </table>
-          </div>
-        </div>
-
-        <!-- Mathematical Proof Accordion -->
-        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
-          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold font-mono">
-            <span><i class="fa-solid fa-square-root-variable mr-1 text-emerald-400"></i> Closed-Form Mass-Balance Proof & Thermodynamic Explanations:</span>
-            <span class="text-slate-500 text-[10px]">Deterministic Closed-Form Engine</span>
-          </div>
-          <div id="cv-res-math-proof" class="text-xs font-mono whitespace-pre-wrap text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
-            Mathematical proof details...
-          </div>
-        </div>
-
-        <!-- AI Observation Telemetry (if executed) -->
-        <div id="cv-res-ai-card" class="hidden p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-2">
-          <div class="flex items-center justify-between text-xs">
-            <span class="font-semibold text-purple-300 flex items-center gap-1.5">
-              <i class="fa-solid fa-microchip"></i> AI Visual Observation Telemetry
-            </span>
-            <span id="cv-res-ai-badge" class="px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 font-bold">AI_ESTIMATED</span>
-          </div>
-          <div class="p-2 rounded bg-purple-950/40 border border-purple-500/20 text-[11px] text-purple-300 font-semibold flex items-center gap-2">
-            <i class="fa-solid fa-circle-info text-purple-400"></i>
-            <span>AI observes evidence; deterministic verification makes the decision.</span>
-          </div>
-          <div id="cv-res-ai-details" class="text-xs font-mono text-purple-200/90 space-y-1">
-            <!-- Populated dynamically -->
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- 2x2 Grid of Core System Modules -->
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-
-      <!-- Panel 1: Digital Product Passport (DPP) -->
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-blue-500/20 text-blue-400 flex items-center justify-center">
-              <i class="fa-solid fa-id-card"></i>
-            </div>
-            <h3 class="font-bold text-white">Digital Product Passport (DPP)</h3>
-          </div>
-          <span id="dpp-state-badge" class="px-2.5 py-1 rounded-full bg-blue-500/20 text-blue-300 text-xs font-mono font-semibold">
-            MANUFACTURED
-          </span>
-        </div>
-
-        <div class="space-y-3 text-xs">
-          <div class="flex justify-between border-b border-slate-800/60 pb-2">
-            <span class="text-slate-400">Passport ID:</span>
-            <span id="dpp-id" class="font-mono text-slate-200 font-semibold">DPP-EV-NMC622-2026-M04</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-800/60 pb-2">
-            <span class="text-slate-400">Model Name:</span>
-            <span class="text-slate-200">24V Lithium-Ion EV Traction Battery Module (6S2P)</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-800/60 pb-2">
-            <span class="text-slate-400">Manufacturer:</span>
-            <span class="text-slate-200">Nordic Battery Systems AB</span>
-          </div>
-          <div class="flex justify-between border-b border-slate-800/60 pb-2">
-            <span class="text-slate-400">Gross Mass per Unit:</span>
-            <span class="font-mono text-slate-200">25.0 kg</span>
-          </div>
-        </div>
-
-        <!-- Bill of Materials (BoM) Table -->
-        <div class="space-y-2">
-          <div class="flex items-center justify-between text-xs text-slate-400">
-            <span class="font-semibold text-slate-300">Certified Bill of Materials (EU Reg 2023/1542)</span>
-            <span class="px-2 py-0.5 rounded provenance-assumed text-[10px]">REFERENCE_ASSUMED</span>
-          </div>
-          <div class="overflow-x-auto">
-            <table class="w-full text-left text-xs border border-slate-800 rounded-lg">
-              <thead class="bg-slate-950 text-slate-400 font-mono">
-                <tr>
-                  <th class="p-2">Material</th>
-                  <th class="p-2">Nominal %</th>
-                  <th class="p-2">BAT Yield</th>
-                  <th class="p-2">Critical</th>
-                </tr>
-              </thead>
-              <tbody class="divide-y divide-slate-800/60 text-slate-300">
-                <tr>
-                  <td class="p-2 font-medium">Nickel (Ni)</td>
-                  <td class="p-2 font-mono">18.00%</td>
-                  <td class="p-2 font-mono text-emerald-400">92.0%</td>
-                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
-                </tr>
-                <tr>
-                  <td class="p-2 font-medium">Cobalt (Co)</td>
-                  <td class="p-2 font-mono">6.00%</td>
-                  <td class="p-2 font-mono text-emerald-400">93.0%</td>
-                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
-                </tr>
-                <tr>
-                  <td class="p-2 font-medium">Lithium (Li)</td>
-                  <td class="p-2 font-mono">2.80%</td>
-                  <td class="p-2 font-mono text-emerald-400">75.0%</td>
-                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
-                </tr>
-                <tr>
-                  <td class="p-2 font-medium">Copper (Cu)</td>
-                  <td class="p-2 font-mono">11.20%</td>
-                  <td class="p-2 font-mono text-emerald-400">94.0%</td>
-                  <td class="p-2"><span class="text-emerald-400 font-bold">YES</span></td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </section>
-
-      <!-- Panel 2: Dual-Mode AI Computer Vision Observation -->
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center">
-              <i class="fa-solid fa-camera"></i>
-            </div>
-            <h3 class="font-bold text-white">Physical Evidence & AI Observation</h3>
-          </div>
-          <span class="px-2.5 py-1 rounded-md provenance-ai text-xs font-mono font-semibold">
-            AI_ESTIMATED
-          </span>
-        </div>
-
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <!-- Mock Scan Preview -->
-          <div class="border border-slate-800 rounded-xl bg-slate-950 p-4 flex flex-col items-center justify-center space-y-2 relative">
-            <i class="fa-solid fa-pallet text-slate-600 text-4xl"></i>
-            <span class="text-xs font-mono text-slate-400">weighbridge_intake_nmc622.jpg</span>
-            <span class="text-[10px] text-slate-500 font-mono">SHA-256: 0x9f88...a2c1</span>
-            <div class="absolute top-2 right-2 px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-mono">
-              25MB Limit OK
-            </div>
-          </div>
-
-          <!-- Observation Metrics -->
-          <div class="space-y-3 text-xs">
-            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80">
-              <span class="text-slate-400 block mb-1">Detected Units:</span>
-              <span id="ai-detected-units" class="text-base font-bold text-white font-mono">40 Modules (6S2P)</span>
-            </div>
-            <div class="p-3 rounded-xl bg-slate-950 border border-slate-800/80">
-              <span class="text-slate-400 block mb-1">Observation Confidence:</span>
-              <span id="ai-confidence" class="text-base font-bold text-purple-400 font-mono">96.5%</span>
-            </div>
-          </div>
-        </div>
-
-        <div class="p-3 rounded-xl bg-purple-950/20 border border-purple-500/20 text-xs text-purple-300">
-          <i class="fa-solid fa-triangle-exclamation mr-1"></i>
-          <strong>Trust Segregation Rule (ADR-001):</strong> AI output provides feature priors and unit counts only. AI NEVER makes the verification decision.
-        </div>
-      </section>
-
-      <!-- Panel 3: Deterministic Mass-Balance Engine -->
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center">
-              <i class="fa-solid fa-scale-balanced"></i>
-            </div>
-            <h3 class="font-bold text-white">Deterministic Mass-Balance Engine</h3>
-          </div>
-          <span id="mb-verdict-badge" class="px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold">
-            READY
-          </span>
-        </div>
-
-        <div class="p-3 rounded-xl bg-slate-950 border border-slate-800 font-mono text-xs text-slate-300 space-y-1">
-          <div class="text-slate-400 font-semibold">// Closed-Form Thermodynamic Equations:</div>
-          <div>M_intake = 1,000.00 kg (MEASURED) | Scale Uncertainty = ±0.5%</div>
-          <div>M_max_allowed = 1,000.00 × 1.005 = 1,005.00 kg</div>
-          <div class="text-emerald-400">Total Claimed Recovered Mass = 541.30 kg (53.86% of Intake) &lt; Ceiling OK</div>
-        </div>
-
-        <div class="space-y-3">
-          <h4 class="text-xs font-semibold text-slate-300">Recovery Yield Envelope Check:</h4>
-          <div class="space-y-2 text-xs">
-            <div>
-              <div class="flex justify-between text-slate-400 mb-1">
-                <span>Cobalt Recovery (Nominal: 55.8 kg, Max Plausible: 60.3 kg)</span>
-                <span id="mb-co-status" class="font-mono text-emerald-400">55.80 kg (VALID)</span>
+            <div id="bc-cert-result" class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono space-y-2 text-slate-300">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Certificate ID:</span>
+                <span id="cert-id" class="text-teal-400 font-bold">POR-2026-DEMO-SAMPLE</span>
               </div>
-              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                <div id="mb-co-bar" class="bg-emerald-500 h-2 rounded-full" style="width: 55%"></div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Anchored Commitment:</span>
+                <span id="cert-commitment" class="text-slate-300 truncate max-w-[200px]">0x56a64483713f0449...</span>
               </div>
-            </div>
-            <div>
-              <div class="flex justify-between text-slate-400 mb-1">
-                <span>Nickel Recovery (Nominal: 165.6 kg, Max Plausible: 180.9 kg)</span>
-                <span id="mb-ni-status" class="font-mono text-emerald-400">165.60 kg (VALID)</span>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Transaction Hash:</span>
+                <span id="cert-tx" class="text-slate-300 truncate max-w-[200px]">0x7b1928cf6a18d...</span>
               </div>
-              <div class="w-full bg-slate-800 rounded-full h-2 overflow-hidden">
-                <div id="mb-ni-bar" class="bg-emerald-500 h-2 rounded-full" style="width: 50%"></div>
+              <div id="cert-auth-status" class="pt-2 text-[11px] text-emerald-400 flex items-center gap-1.5 border-t border-slate-800/80">
+                <i class="fa-solid fa-circle-check"></i>
+                <span>Cryptographic Anchor Verified on LOCAL TESTNET.</span>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <!-- Panel 4: Local EVM Blockchain Ledger & PoR Certificate -->
-      <section class="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 space-y-6">
-        <div class="flex items-center justify-between">
-          <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-lg bg-teal-500/20 text-teal-400 flex items-center justify-center">
-              <i class="fa-solid fa-certificate"></i>
+      <!-- ===================================================================== -->
+      <!-- MODULE 6: INVESTIGATION                                               -->
+      <!-- ===================================================================== -->
+      <section id="view-investigation" class="view-panel space-y-6 hidden">
+        <div class="border-b border-slate-800 pb-4">
+          <h2 class="text-xl font-bold text-white flex items-center gap-2">
+            <i class="fa-solid fa-magnifying-glass-chart text-rose-400"></i> Audit Investigation & Discrepancy Diagnostics
+          </h2>
+          <p class="text-xs text-slate-400">Investigate flagged material claims, examine evidence tampering attacks, and monitor lifecycle quarantine enforcement.</p>
+        </div>
+
+        <!-- Lifecycle Quarantine Rule Box -->
+        <div class="p-4 rounded-xl bg-rose-950/30 border border-rose-500/30 text-xs text-rose-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div class="space-y-0.5">
+            <div class="font-bold text-rose-400 flex items-center gap-1.5">
+              <i class="fa-solid fa-shield-virus"></i> FLAGGED Quarantine Governance (Section R1)
             </div>
-            <h3 class="font-bold text-white">Proof-of-Recycling (PoR) & Ledger Anchor</h3>
+            <p class="text-[11px] text-rose-200/90">
+              A product whose verification fails transitions immediately to <code>FLAGGED</code>. A quarantined product CANNOT emit recycling certificates or recover materials until an authorized Auditor resolves the investigation.
+            </p>
           </div>
-          <button onclick="verifyCertificateLive()" id="btn-verify-cert" class="px-2.5 py-1 rounded-lg bg-teal-600/30 hover:bg-teal-600/50 border border-teal-500/30 text-teal-300 text-xs font-mono transition">
-            <i class="fa-solid fa-arrows-rotate mr-1"></i> Verify On-Chain
+          <span class="px-2.5 py-1 rounded bg-rose-900/60 text-rose-300 font-mono text-[10px] font-bold border border-rose-500/30 shrink-0">
+            ZERO CERTIFICATE ISSUANCE
+          </span>
+        </div>
+
+        <!-- Investigation Logs Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <!-- Left: Flagged Claims Log -->
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation text-rose-400"></i> Flagged Material Claims Log
+              </span>
+              <span id="investigation-flagged-count" class="text-[10px] font-mono px-2 py-0.5 rounded bg-rose-950/60 text-rose-300 border border-rose-500/30">0 Flagged</span>
+            </div>
+
+            <div id="investigation-flagged-list" class="space-y-2 max-h-72 overflow-y-auto">
+              <div class="text-xs text-slate-500 italic p-4 text-center border border-slate-800/80 rounded-xl">
+                No flagged events recorded in this session. Run Scenario B in Demo Lab to see a fraud investigation.
+              </div>
+            </div>
+          </div>
+
+          <!-- Right: Evidence Tampering & Integrity Failures Log -->
+          <div class="p-5 rounded-2xl border border-slate-800 bg-slate-900/60 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-white flex items-center gap-1.5">
+                <i class="fa-solid fa-fingerprint text-amber-400"></i> Evidence Integrity Breaches
+              </span>
+              <span id="investigation-tampered-count" class="text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-500/30">0 Breaches</span>
+            </div>
+
+            <div id="investigation-tampered-list" class="space-y-2 max-h-72 overflow-y-auto">
+              <div class="text-xs text-slate-500 italic p-4 text-center border border-slate-800/80 rounded-xl">
+                No evidence integrity breaches detected. Run Scenario C in Demo Lab to inspect a tampering attack.
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ===================================================================== -->
+      <!-- MODULE 7: DEMO LAB                                                    -->
+      <!-- ===================================================================== -->
+      <section id="view-demo" class="view-panel space-y-6 hidden">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+          <div>
+            <h2 class="text-xl font-bold text-white flex items-center gap-2">
+              <i class="fa-solid fa-flask text-amber-400"></i> Demo Lab — Evaluator Verification Suite
+            </h2>
+            <p class="text-xs text-slate-400">One-click execution of end-to-end hackathon scenarios testing cryptographic integrity, mathematical gating, and fraud quarantine.</p>
+          </div>
+          <button type="button" onclick="cvResetDemoPassports()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition flex items-center gap-1.5 self-start sm:self-center">
+            <i class="fa-solid fa-rotate-left"></i> Reset Demo State
           </button>
         </div>
 
-        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-3 font-mono">
-          <div class="flex justify-between">
-            <span class="text-slate-400">Network:</span>
-            <span class="text-emerald-400 font-bold">LOCAL TESTNET (Chain 31337)</span>
+        <!-- 3 Scenarios Grid -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-5">
+          <!-- Scenario A Card -->
+          <div class="p-5 rounded-2xl border border-emerald-500/30 bg-slate-900/80 space-y-3 flex flex-col justify-between shadow-lg shadow-emerald-950/20">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-emerald-500/20 text-emerald-300">SCENARIO A</span>
+                <span class="text-[10px] font-mono text-emerald-400 font-bold">EXPECT: VERIFIED</span>
+              </div>
+              <h3 class="text-sm font-bold text-white">Legitimate Circular Recycling</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Full valid recycling flow: battery module intake, scale ticket evidence, closed-form BAT recovery bounds check, on-chain EVM anchor, and Proof-of-Recycling certificate issuance.
+              </p>
+            </div>
+            <button onclick="runScenario('A')" id="btn-scenario-a" class="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-medium text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 active:scale-95">
+              <i class="fa-solid fa-circle-check"></i> Run Scenario A (Legitimate)
+            </button>
           </div>
-          <div class="flex justify-between truncate">
-            <span class="text-slate-400">Anchored Commitment:</span>
-            <span id="cert-commitment" class="text-slate-300 truncate max-w-[200px]">0x56a64483713f0449...</span>
+
+          <!-- Scenario B Card -->
+          <div class="p-5 rounded-2xl border border-rose-500/30 bg-slate-900/80 space-y-3 flex flex-col justify-between shadow-lg shadow-rose-950/20">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-rose-500/20 text-rose-300">SCENARIO B</span>
+                <span class="text-[10px] font-mono text-rose-400 font-bold">EXPECT: FLAGGED</span>
+              </div>
+              <h3 class="text-sm font-bold text-white">Fraudulent Material Recovery Claim</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Adversary claims impossible recovered Cobalt (250 kg from 25 kg pack). Stoichiometric conservation gate catches violation, quarantines product to <code>FLAGGED</code>, and blocks certificate.
+              </p>
+            </div>
+            <button onclick="runScenario('B')" id="btn-scenario-b" class="w-full py-2.5 rounded-xl bg-rose-600 hover:bg-rose-500 text-white font-medium text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-rose-600/20 active:scale-95">
+              <i class="fa-solid fa-triangle-exclamation"></i> Run Scenario B (Fraud Claim)
+            </button>
           </div>
-          <div class="flex justify-between truncate">
-            <span class="text-slate-400">Transaction Hash:</span>
-            <span id="cert-tx" class="text-slate-300 truncate max-w-[200px]">0x7b1928cf6a18d...</span>
-          </div>
-          <div class="flex justify-between">
-            <span class="text-slate-400">Certificate ID:</span>
-            <span id="cert-id" class="text-teal-400 font-bold">POR-2026-DEMO-SAMPLE</span>
+
+          <!-- Scenario C Card -->
+          <div class="p-5 rounded-2xl border border-amber-500/30 bg-slate-900/80 space-y-3 flex flex-col justify-between shadow-lg shadow-amber-950/20">
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <span class="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/20 text-amber-300">SCENARIO C</span>
+                <span class="text-[10px] font-mono text-amber-400 font-bold">EXPECT: INTEGRITY BREACH</span>
+              </div>
+              <h3 class="text-sm font-bold text-white">Physical Evidence Tampering Attack</h3>
+              <p class="text-xs text-slate-400 leading-relaxed">
+                Adversary alters 1 byte of the weighbridge scale receipt ticket after commitment. RFC 8785 canonical hash check catches mismatch, halts lifecycle, and flags tampering.
+              </p>
+            </div>
+            <button onclick="runScenario('C')" id="btn-scenario-c" class="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium text-xs transition flex items-center justify-center gap-2 shadow-lg shadow-amber-600/20 active:scale-95">
+              <i class="fa-solid fa-shield-halved"></i> Run Scenario C (Evidence Tampering)
+            </button>
           </div>
         </div>
 
-        <div id="cert-auth-status" class="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2">
-          <i class="fa-solid fa-circle-check text-emerald-400 text-base"></i>
-          <span>Cryptographic Anchor Verified: Hashes match local EVM registry state.</span>
+        <!-- Scenario Execution Output Container -->
+        <div id="scenario-output" class="hidden rounded-2xl border border-slate-800 bg-slate-900/80 p-6 space-y-4 shadow-xl">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+            <h3 id="scenario-title" class="text-sm font-bold text-white flex items-center gap-2">-</h3>
+            <span id="scenario-verdict" class="px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-mono self-start sm:self-auto">-</span>
+          </div>
+          <div id="scenario-stages" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3"></div>
+          <div id="scenario-math" class="hidden p-4 rounded-xl bg-slate-950 border border-slate-800 text-xs font-mono whitespace-pre-wrap text-slate-300"></div>
         </div>
       </section>
 
     </div>
   </main>
 
-  <!-- Interactive JavaScript Logic -->
+  <!-- ========================================================================= -->
+  <!-- JAVASCRIPT: APPLICATION LOGIC & ROUTER                                    -->
+  <!-- ========================================================================= -->
   <script>
-    async function runScenario(scenario) {
-      const btn = document.getElementById(`btn-scenario-${scenario.toLowerCase()}`);
-      const out = document.getElementById('scenario-output');
-      const title = document.getElementById('scenario-title');
-      const verdict = document.getElementById('scenario-verdict');
-      const stagesDiv = document.getElementById('scenario-stages');
-      const mathDiv = document.getElementById('scenario-math');
-
-      btn.classList.add('opacity-50', 'pointer-events-none');
-      out.classList.remove('hidden');
-      title.innerText = `Executing Scenario ${scenario}...`;
-      verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-800 text-slate-300';
-      verdict.innerText = 'PROCESSING';
-      stagesDiv.innerHTML = '<div class="text-xs text-slate-400 col-span-4">Running pipeline across schemas, mass balance, and blockchain...</div>';
-      mathDiv.classList.add('hidden');
-
-      try {
-        const resp = await fetch('/api/v1/demo/run-scenario', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ scenario: scenario })
-        });
-        const data = await resp.json();
-
-        title.innerText = data.title;
-        verdict.innerText = data.verdict;
-
-        if (data.verdict === 'VERIFIED') {
-          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
-          document.getElementById('dpp-state-badge').innerText = 'RECYCLING_VERIFIED';
-          document.getElementById('dpp-state-badge').className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-semibold';
-          document.getElementById('mb-verdict-badge').innerText = 'VALID';
-          document.getElementById('mb-verdict-badge').className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold';
-          if (data.certificate) {
-            document.getElementById('cert-id').innerText = data.certificate.certificate_id;
-            document.getElementById('cert-commitment').innerText = data.certificate.evidence_commitment;
-            document.getElementById('cert-tx').innerText = data.certificate.blockchain_transaction_reference;
-          }
-        } else if (data.verdict === 'CLAIM FLAGGED') {
-          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/30';
-          document.getElementById('dpp-state-badge').innerText = 'FLAGGED';
-          document.getElementById('dpp-state-badge').className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-semibold';
-          document.getElementById('mb-verdict-badge').innerText = 'IMPOSSIBLE';
-          document.getElementById('mb-verdict-badge').className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-bold';
-        } else if (data.verdict === 'EVIDENCE_INTEGRITY_FAILURE') {
-          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/30';
-          document.getElementById('dpp-state-badge').innerText = 'FLAGGED (TAMPERED)';
-          document.getElementById('dpp-state-badge').className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-semibold';
-          document.getElementById('mb-verdict-badge').innerText = 'INTEGRITY_BREACH';
-          document.getElementById('mb-verdict-badge').className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-bold';
-        } else {
-          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-slate-500/20 text-slate-300 border border-slate-500/30';
-        }
-
-        // Render stage cards
-        stagesDiv.innerHTML = '';
-        data.stages.forEach(st => {
-          const card = document.createElement('div');
-          card.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1';
-          card.innerHTML = `
-            <div class="flex justify-between items-center text-slate-400 font-mono text-[10px]">
-              <span>Stage ${st.stage}</span>
-              <span class="text-emerald-400 font-bold">${st.status}</span>
-            </div>
-            <div class="font-semibold text-slate-200">${st.name}</div>
-            <div class="text-[11px] text-slate-400">${st.details || st.decision || st.tx_hash || ''}</div>
-          `;
-          stagesDiv.appendChild(card);
-        });
-
-        if (data.mathematical_proof) {
-          mathDiv.classList.remove('hidden');
-          mathDiv.innerText = "=== MATHEMATICAL FRAUD PROOF ===\n" + data.mathematical_proof;
-        }
-
-      } catch (err) {
-        title.innerText = 'Execution Failed';
-        verdict.innerText = 'ERROR';
-        verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300';
-        stagesDiv.innerHTML = `<div class="text-rose-400 text-xs font-mono col-span-4">${err.message}</div>`;
-      } finally {
-        btn.classList.remove('opacity-50', 'pointer-events-none');
-      }
-    }
-
-    async function verifyCertificateLive() {
-      const certId = document.getElementById('cert-id').innerText;
-      const statusBox = document.getElementById('cert-auth-status');
-      statusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Verifying cryptographic commitments on LOCAL TESTNET...';
-
-      try {
-        const resp = await fetch(`/api/v1/certificates/verify/${certId}`);
-        if (resp.ok) {
-          const data = await resp.json();
-          statusBox.className = 'p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-300 flex items-center gap-2';
-          statusBox.innerHTML = `<i class="fa-solid fa-circle-check text-emerald-400"></i> Verified! Ledger commit: ${data.evidence_commitment.substring(0, 18)}...`;
-        } else {
-          statusBox.className = 'p-3 rounded-xl bg-amber-950/20 border border-amber-500/20 text-xs text-amber-300 flex items-center gap-2';
-          statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400"></i> Certificate not yet anchored on-chain. Run Scenario A first.`;
-        }
-      } catch (e) {
-        statusBox.className = 'p-3 rounded-xl bg-rose-950/20 border border-rose-500/20 text-xs text-rose-300 flex items-center gap-2';
-        statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i> Verification failed: ${e.message}`;
-      }
-    }
-
-    // =========================================================================
-    // Custom Verification Workflow JavaScript Logic
-    // =========================================================================
+    // Global State
+    let _activeView = 'overview';
     let _cvPassports = [];
     let _cvSelectedPassport = null;
     let _cvUploadedFiles = [];
+    let _flaggedEvents = [];
+    let _tamperedEvents = [];
 
-    function toggleCustomVerification() {
-      const sec = document.getElementById('custom-verification-section');
-      sec.scrollIntoView({ behavior: 'smooth' });
+    // -------------------------------------------------------------------------
+    // Navigation / Router
+    // -------------------------------------------------------------------------
+    function navigateTo(viewId, updateHash = true) {
+      const validViews = ['overview', 'passports', 'verification', 'evidence', 'blockchain', 'investigation', 'demo'];
+      if (!validViews.includes(viewId)) {
+        viewId = 'overview';
+      }
+      _activeView = viewId;
+
+      // 1. Toggle View Panels
+      document.querySelectorAll('.view-panel').forEach(p => {
+        if (p.id === `view-${viewId}`) {
+          p.classList.remove('hidden');
+        } else {
+          p.classList.add('hidden');
+        }
+      });
+
+      // 2. Update Desktop Sidebar Active Styling
+      document.querySelectorAll('.nav-item').forEach(btn => {
+        const v = btn.getAttribute('data-view');
+        if (v === viewId) {
+          btn.className = 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-bold text-white bg-emerald-500/15 border border-emerald-500/30 transition text-left';
+          const icon = btn.querySelector('i');
+          if (icon) icon.className = icon.className.replace('text-slate-400', 'text-emerald-400');
+        } else {
+          btn.className = 'nav-item w-full flex items-center gap-3 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-slate-400 hover:text-white hover:bg-slate-800/80 transition text-left';
+        }
+      });
+
+      // 3. Update Mobile Drawer Active Styling
+      document.querySelectorAll('.mobile-nav-item').forEach(btn => {
+        const v = btn.getAttribute('data-view');
+        if (v === viewId) {
+          btn.className = 'mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-emerald-400 font-bold bg-emerald-500/10 text-left';
+        } else {
+          btn.className = 'mobile-nav-item w-full flex items-center gap-3 px-3 py-2 rounded-lg text-slate-300 hover:bg-slate-800 text-left';
+        }
+      });
+
+      // 4. Update Header Breadcrumb Title
+      const titles = {
+        overview: 'Overview',
+        passports: 'Digital Passports',
+        verification: 'Verification Workbench',
+        evidence: 'Evidence & AI Audit',
+        blockchain: 'Blockchain & PoR',
+        investigation: 'Audit Investigation',
+        demo: 'Demo Lab'
+      };
+      const titleElem = document.getElementById('breadcrumb-title');
+      if (titleElem) titleElem.textContent = titles[viewId] || 'Overview';
+
+      // 5. Update URL Hash
+      if (updateHash && window.location.hash !== `#${viewId}`) {
+        history.pushState(null, '', `#${viewId}`);
+      }
+
+      // Close mobile drawer if open
+      const drawer = document.getElementById('mobile-drawer');
+      if (drawer && !drawer.classList.contains('hidden')) {
+        drawer.classList.add('hidden');
+      }
+
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
+    function toggleMobileDrawer() {
+      const drawer = document.getElementById('mobile-drawer');
+      if (drawer) drawer.classList.toggle('hidden');
+    }
+
+    window.addEventListener('hashchange', () => {
+      const hash = window.location.hash.replace('#', '') || 'overview';
+      navigateTo(hash, false);
+    });
+
+    // -------------------------------------------------------------------------
+    // Digital Product Passports Module Logic
+    // -------------------------------------------------------------------------
+    function dppRenderList() {
+      const container = document.getElementById('passports-list-container');
+      if (!container) return;
+
+      const q = (document.getElementById('passports-search-input')?.value || '').toLowerCase().trim();
+      const filter = document.getElementById('passports-filter-select')?.value || 'ALL';
+
+      const filtered = _cvPassports.filter(p => {
+        const state = p.current_lifecycle_state || 'MANUFACTURED';
+        if (filter !== 'ALL' && state !== filter) return false;
+        if (q) {
+          const matchId = p.passport_id.toLowerCase().includes(q);
+          const matchName = (p.product_name || '').toLowerCase().includes(q);
+          const matchMfg = (p.manufacturer || '').toLowerCase().includes(q);
+          if (!matchId && !matchName && !matchMfg) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-500 p-4 text-center border border-slate-800/80 rounded-xl">No passports matching criteria</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      filtered.forEach(p => {
+        const div = document.createElement('div');
+        const isSelected = _cvSelectedPassport && _cvSelectedPassport.passport_id === p.passport_id;
+        const state = p.current_lifecycle_state || 'MANUFACTURED';
+        const isEligible = state === 'RECYCLING_PENDING';
+        
+        div.className = `p-3 rounded-xl border cursor-pointer transition ${
+          isSelected ? 'bg-slate-800/90 border-blue-500/50' : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
+        }`;
+        div.onclick = () => dppSelectPassport(p.passport_id);
+        div.innerHTML = `
+          <div class="flex items-center justify-between text-xs mb-1">
+            <span class="font-mono font-bold ${isSelected ? 'text-blue-300' : 'text-slate-200'}">${p.passport_id}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono font-bold ${
+              isEligible ? 'bg-emerald-500/20 text-emerald-300' : (state === 'FLAGGED' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400')
+            }">${state}</span>
+          </div>
+          <div class="text-xs text-slate-300 truncate">${p.product_name}</div>
+          <div class="flex items-center justify-between text-[11px] text-slate-500 font-mono mt-1">
+            <span>${p.initial_total_mass_kg} kg</span>
+            <span>${p.product_category}</span>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function dppFilterList() {
+      dppRenderList();
+    }
+
+    function dppSelectPassport(pid) {
+      const p = _cvPassports.find(x => x.passport_id === pid);
+      if (!p) return;
+      _cvSelectedPassport = p;
+      dppRenderInspector();
+      dppRenderList();
+
+      // Synchronize Custom Verification dropdown
+      const sel = document.getElementById('cv-passport-select');
+      if (sel) {
+        sel.value = pid;
+        cvOnPassportChange();
+      }
+    }
+
+    function dppRenderInspector() {
+      const card = document.getElementById('dpp-inspector-card');
+      const empty = document.getElementById('dpp-inspector-empty');
+      if (!_cvSelectedPassport) {
+        if (card) card.classList.add('hidden');
+        if (empty) empty.classList.remove('hidden');
+        return;
+      }
+      if (card) card.classList.remove('hidden');
+      if (empty) empty.classList.add('hidden');
+
+      const p = _cvSelectedPassport;
+      const state = p.current_lifecycle_state || 'MANUFACTURED';
+
+      document.getElementById('dpp-insp-id').textContent = p.passport_id;
+      document.getElementById('dpp-insp-name').textContent = p.product_name;
+      document.getElementById('dpp-insp-sku').textContent = p.product_id;
+      document.getElementById('dpp-insp-cat').textContent = p.product_category;
+      document.getElementById('dpp-insp-mfg').textContent = p.manufacturer || 'Unknown';
+      document.getElementById('dpp-insp-mass').textContent = `${p.initial_total_mass_kg} kg`;
+
+      const badge = document.getElementById('dpp-insp-state-badge');
+      badge.textContent = state;
+      badge.className = `px-2.5 py-0.5 rounded-full text-xs font-mono font-bold ${
+        state === 'RECYCLING_PENDING' ? 'bg-emerald-500/20 text-emerald-300' : (state === 'FLAGGED' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400')
+      }`;
+
+      // Highlight lifecycle state node
+      ['manufactured', 'returned', 'pending', 'verified'].forEach(st => {
+        const elem = document.getElementById(`state-node-${st}`);
+        if (elem) elem.className = 'p-2 rounded bg-slate-900 border border-slate-800 text-slate-500';
+      });
+      if (state === 'MANUFACTURED') document.getElementById('state-node-manufactured').className = 'p-2 rounded bg-blue-500/20 border border-blue-500 text-blue-300 font-bold';
+      if (state === 'RETURNED') document.getElementById('state-node-returned').className = 'p-2 rounded bg-indigo-500/20 border border-indigo-500 text-indigo-300 font-bold';
+      if (state === 'RECYCLING_PENDING') document.getElementById('state-node-pending').className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-bold';
+      if (state === 'RECYCLING_VERIFIED') document.getElementById('state-node-verified').className = 'p-2 rounded bg-teal-500/20 border border-teal-500 text-teal-300 font-bold';
+
+      const flagInd = document.getElementById('dpp-flagged-indicator');
+      if (flagInd) {
+        flagInd.textContent = state === 'FLAGGED' ? 'QUARANTINED' : 'Normal';
+        flagInd.className = state === 'FLAGGED' ? 'font-mono font-bold text-rose-400 uppercase text-[10px]' : 'font-mono font-bold text-slate-500 uppercase text-[10px]';
+      }
+
+      // Render BoM
+      const tbody = document.getElementById('dpp-insp-bom-tbody');
+      tbody.innerHTML = '';
+      if (p.material_composition && p.material_composition.components) {
+        p.material_composition.components.forEach(c => {
+          const tr = document.createElement('tr');
+          const batYield = (100.0 - c.expected_yield_loss_pct).toFixed(1) + '%';
+          const critBadge = c.is_critical_raw_material ? '<span class="text-emerald-400 font-bold">YES</span>' : '<span class="text-slate-500">NO</span>';
+          tr.innerHTML = `
+            <td class="p-2.5 font-medium text-slate-200">${c.material_name}</td>
+            <td class="p-2.5 font-mono text-slate-300">${c.percentage.toFixed(2)}%</td>
+            <td class="p-2.5 font-mono text-emerald-400">${batYield}</td>
+            <td class="p-2.5 text-center">${critBadge}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
+    function dppSelectForVerification() {
+      if (_cvSelectedPassport) {
+        const sel = document.getElementById('cv-passport-select');
+        if (sel) {
+          sel.value = _cvSelectedPassport.passport_id;
+          cvOnPassportChange();
+        }
+      }
+      navigateTo('verification');
+    }
+
+    // -------------------------------------------------------------------------
+    // Custom Verification Logic
+    // -------------------------------------------------------------------------
     async function cvLoadPassports() {
       const select = document.getElementById('cv-passport-select');
-      select.innerHTML = '<option value="">Loading passports from /api/v1/passports...</option>';
+      if (select) select.innerHTML = '<option value="">Loading passports...</option>';
       try {
         const resp = await fetch('/api/v1/passports');
         if (!resp.ok) throw new Error('Failed to load passports');
         _cvPassports = await resp.json();
 
-        select.innerHTML = '';
-        if (_cvPassports.length === 0) {
-          select.innerHTML = '<option value="">No passports found in store</option>';
-          return;
-        }
-
-        // Sort so that RECYCLING_PENDING (eligible) DPPs appear at the top (Change 2)
+        // Sort so that RECYCLING_PENDING (eligible) DPPs appear at the top
         _cvPassports.sort((a, b) => {
           const aPending = (a.current_lifecycle_state === 'RECYCLING_PENDING') ? 0 : 1;
           const bPending = (b.current_lifecycle_state === 'RECYCLING_PENDING') ? 0 : 1;
           return aPending - bPending;
         });
 
-        _cvPassports.forEach(p => {
-          const opt = document.createElement('option');
-          opt.value = p.passport_id;
-          const state = p.current_lifecycle_state || 'MANUFACTURED';
-          const eligibleTag = (state === 'RECYCLING_PENDING') ? ' [ELIGIBLE]' : ` [${state}]`;
-          opt.textContent = `${p.passport_id} — ${p.product_name}${eligibleTag}`;
-          select.appendChild(opt);
-        });
+        if (select) {
+          select.innerHTML = '';
+          _cvPassports.forEach(p => {
+            const opt = document.createElement('option');
+            opt.value = p.passport_id;
+            const state = p.current_lifecycle_state || 'MANUFACTURED';
+            const eligibleTag = (state === 'RECYCLING_PENDING') ? ' [ELIGIBLE]' : ` [${state}]`;
+            opt.textContent = `${p.passport_id} — ${p.product_name}${eligibleTag}`;
+            select.appendChild(opt);
+          });
 
-        // Prefer selecting an eligible DPP in RECYCLING_PENDING (Change 2)
-        const eligibleIdx = _cvPassports.findIndex(p => p.current_lifecycle_state === 'RECYCLING_PENDING');
-        if (eligibleIdx >= 0) {
-          select.selectedIndex = eligibleIdx;
-          select.value = _cvPassports[eligibleIdx].passport_id;
-        } else {
-          select.selectedIndex = 0;
-          if (_cvPassports.length > 0) {
-            select.value = _cvPassports[0].passport_id;
+          // Prefer selecting an eligible DPP in RECYCLING_PENDING
+          const eligibleIdx = _cvPassports.findIndex(p => p.current_lifecycle_state === 'RECYCLING_PENDING');
+          if (eligibleIdx >= 0) {
+            select.selectedIndex = eligibleIdx;
+            _cvSelectedPassport = _cvPassports[eligibleIdx];
+          } else if (_cvPassports.length > 0) {
+            select.selectedIndex = 0;
+            _cvSelectedPassport = _cvPassports[0];
           }
         }
 
         cvOnPassportChange();
+        dppRenderList();
+        dppRenderInspector();
+
       } catch (err) {
         console.error('Error loading passports:', err);
-        select.innerHTML = `<option value="">Error loading passports: ${err.message}</option>`;
+        if (select) select.innerHTML = `<option value="">Error loading passports: ${err.message}</option>`;
       }
     }
 
@@ -1034,6 +1624,7 @@
     function cvOnPassportChange() {
       cvHideError();
       const select = document.getElementById('cv-passport-select');
+      if (!select) return;
       const pid = select.value;
       _cvSelectedPassport = _cvPassports.find(p => p.passport_id === pid) || null;
 
@@ -1048,59 +1639,66 @@
       const submitBtn = document.getElementById('cv-btn-submit');
 
       if (!_cvSelectedPassport) {
-        stateBadge.textContent = 'NONE';
-        productSpan.textContent = '-';
-        catMassSpan.textContent = '-';
-        mfgSpan.textContent = '-';
-        bomTbody.innerHTML = '<tr><td colspan="4" class="p-2 text-center text-slate-500">No passport selected</td></tr>';
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        if (stateBadge) stateBadge.textContent = 'NONE';
+        if (productSpan) productSpan.textContent = '-';
+        if (catMassSpan) catMassSpan.textContent = '-';
+        if (mfgSpan) mfgSpan.textContent = '-';
+        if (bomTbody) bomTbody.innerHTML = '<tr><td colspan="4" class="p-2 text-center text-slate-500">No passport selected</td></tr>';
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        }
         return;
       }
 
       const p = _cvSelectedPassport;
       const state = p.current_lifecycle_state || 'MANUFACTURED';
-      stateBadge.textContent = state;
+      if (stateBadge) stateBadge.textContent = state;
 
-      productSpan.textContent = `${p.product_name} (${p.product_id})`;
-      catMassSpan.textContent = `${p.product_category} | Initial Mass: ${p.initial_total_mass_kg} kg`;
-      mfgSpan.textContent = p.manufacturer || 'Unknown';
+      if (productSpan) productSpan.textContent = `${p.product_name} (${p.product_id})`;
+      if (catMassSpan) catMassSpan.textContent = `${p.product_category} | Initial Mass: ${p.initial_total_mass_kg} kg`;
+      if (mfgSpan) mfgSpan.textContent = p.manufacturer || 'Unknown';
 
-      // Check eligibility (Section: only allow verification when lifecycle state is appropriate)
+      // Check eligibility
       if (state === 'RECYCLING_PENDING') {
-        stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
-        alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300';
-        alertText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i><strong>Eligible for Recycling Verification:</strong> Lifecycle state is RECYCLING_PENDING.';
-        advanceBtn.classList.add('hidden');
-        submitBtn.disabled = false;
-        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        if (stateBadge) stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300';
+        if (alertText) alertText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i><strong>Eligible for Recycling Verification:</strong> Lifecycle state is RECYCLING_PENDING.';
+        if (advanceBtn) advanceBtn.classList.add('hidden');
+        if (submitBtn) {
+          submitBtn.disabled = false;
+          submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        }
       } else {
-        stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
-        alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-amber-950/40 border border-amber-500/30 text-amber-300';
-        alertText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1.5"></i><strong>Lifecycle Ineligible:</strong> Currently in <code class="font-bold">${state}</code>. Verification requires <code class="font-bold">RECYCLING_PENDING</code>.`;
-        advanceBtn.classList.remove('hidden');
-        submitBtn.disabled = true;
-        submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        if (stateBadge) stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-amber-950/40 border border-amber-500/30 text-amber-300';
+        if (alertText) alertText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1.5"></i><strong>Lifecycle Ineligible:</strong> Currently in <code class="font-bold">${state}</code>. Verification requires <code class="font-bold">RECYCLING_PENDING</code>.`;
+        if (advanceBtn) advanceBtn.classList.remove('hidden');
+        if (submitBtn) {
+          submitBtn.disabled = true;
+          submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        }
       }
 
-      // Render BoM
-      bomTbody.innerHTML = '';
-      if (p.material_composition && p.material_composition.components) {
-        p.material_composition.components.forEach(c => {
-          const tr = document.createElement('tr');
-          const critBadge = c.is_critical_raw_material ? '<span class="text-emerald-400 font-bold">YES</span>' : '<span class="text-slate-500">NO</span>';
-          const batYield = (100.0 - c.expected_yield_loss_pct).toFixed(1) + '%';
-          tr.innerHTML = `
-            <td class="p-1.5 font-medium text-slate-200">${c.material_name}</td>
-            <td class="p-1.5 font-mono text-slate-300">${c.percentage.toFixed(2)}%</td>
-            <td class="p-1.5 font-mono text-emerald-400">${batYield}</td>
-            <td class="p-1.5 text-center">${critBadge}</td>
-          `;
-          bomTbody.appendChild(tr);
-        });
+      // Render BoM reference
+      if (bomTbody) {
+        bomTbody.innerHTML = '';
+        if (p.material_composition && p.material_composition.components) {
+          p.material_composition.components.forEach(c => {
+            const tr = document.createElement('tr');
+            const critBadge = c.is_critical_raw_material ? '<span class="text-emerald-400 font-bold">YES</span>' : '<span class="text-slate-500">NO</span>';
+            const batYield = (100.0 - c.expected_yield_loss_pct).toFixed(1) + '%';
+            tr.innerHTML = `
+              <td class="p-1.5 font-medium text-slate-200">${c.material_name}</td>
+              <td class="p-1.5 font-mono text-slate-300">${c.percentage.toFixed(2)}%</td>
+              <td class="p-1.5 font-mono text-emerald-400">${batYield}</td>
+              <td class="p-1.5 text-center">${critBadge}</td>
+            `;
+            bomTbody.appendChild(tr);
+          });
+        }
       }
 
-      // Prefill materials for the selected passport
       cvPrefillNominal();
     }
 
@@ -1140,6 +1738,7 @@
 
     function cvAddMaterialRow(name = '', mass = '', purity = 95.0, prov = 'OBSERVED') {
       const tbody = document.getElementById('cv-materials-tbody');
+      if (!tbody) return;
       const tr = document.createElement('tr');
       tr.className = 'border-b border-slate-800/60';
       tr.innerHTML = `
@@ -1175,9 +1774,7 @@
       cvRecalculateClaimedTotal();
     }
 
-    function cvOnIntakeMassChange() {
-      // Intentionally empty for manual user flexibility
-    }
+    function cvOnIntakeMassChange() {}
 
     function cvPrefillNominal() {
       if (!_cvSelectedPassport || !_cvSelectedPassport.material_composition) {
@@ -1187,8 +1784,9 @@
         return;
       }
 
-      const intakeMass = parseFloat(document.getElementById('cv-intake-mass').value) || 1000.0;
+      const intakeMass = parseFloat(document.getElementById('cv-intake-mass')?.value) || 1000.0;
       const tbody = document.getElementById('cv-materials-tbody');
+      if (!tbody) return;
       tbody.innerHTML = '';
 
       _cvSelectedPassport.material_composition.components.forEach(c => {
@@ -1211,7 +1809,8 @@
           total += val;
         }
       });
-      document.getElementById('cv-claimed-total-sum').textContent = `${total.toFixed(2)} kg`;
+      const sumSpan = document.getElementById('cv-claimed-total-sum');
+      if (sumSpan) sumSpan.textContent = `${total.toFixed(2)} kg`;
     }
 
     function cvOnAIModeChange() {
@@ -1247,11 +1846,13 @@
     function cvToggleAI() {
       const toggle = document.getElementById('cv-ai-toggle');
       const row = document.getElementById('cv-ai-mode-row');
-      if (toggle.checked) {
-        row.classList.remove('hidden');
-        cvOnAIModeChange();
-      } else {
-        row.classList.add('hidden');
+      if (toggle && row) {
+        if (toggle.checked) {
+          row.classList.remove('hidden');
+          cvOnAIModeChange();
+        } else {
+          row.classList.add('hidden');
+        }
       }
     }
 
@@ -1290,6 +1891,7 @@
       }
       fileInput.value = '';
       cvRenderUploadedFiles();
+      auditUpdateEvidenceView();
     }
 
     async function cvGenerateSampleEvidence() {
@@ -1315,6 +1917,7 @@
         const rec = await resp.json();
         _cvUploadedFiles.push(rec);
         cvRenderUploadedFiles();
+        auditUpdateEvidenceView();
       } catch (err) {
         alert('Error creating sample slip: ' + err.message);
       }
@@ -1322,6 +1925,7 @@
 
     function cvRenderUploadedFiles() {
       const container = document.getElementById('cv-evidence-list');
+      if (!container) return;
       if (_cvUploadedFiles.length === 0) {
         container.innerHTML = '<div class="text-[11px] text-slate-500 italic p-2 border border-slate-800/80 rounded-lg text-center">No physical evidence files uploaded yet.</div>';
         return;
@@ -1360,8 +1964,10 @@
     function cvRemoveUploadedFile(idx) {
       _cvUploadedFiles.splice(idx, 1);
       cvRenderUploadedFiles();
+      auditUpdateEvidenceView();
     }
 
+    // Submit Custom Verification
     async function cvSubmitVerification() {
       cvHideError();
 
@@ -1370,13 +1976,12 @@
         return;
       }
 
-      // Pre-flight lifecycle verification
       if (_cvSelectedPassport.current_lifecycle_state !== 'RECYCLING_PENDING') {
         cvShowError(`Passport ${_cvSelectedPassport.passport_id} is in state ${_cvSelectedPassport.current_lifecycle_state}. It must be in RECYCLING_PENDING to execute verification.`);
         return;
       }
 
-      // Auto-upload if files were selected in input but user did not click 'Upload Files'
+      // Auto-upload if files chosen in input but user did not click 'Upload'
       if (_cvUploadedFiles.length === 0) {
         const fileInput = document.getElementById('cv-evidence-files');
         if (fileInput && fileInput.files && fileInput.files.length > 0) {
@@ -1385,7 +1990,7 @@
       }
 
       if (_cvUploadedFiles.length === 0) {
-        cvShowError('At least one physical evidence file is required. Upload a file or click "Quick Test Slip".');
+        cvShowError('At least one physical evidence file is required. Upload a file or click "Quick Slip".');
         return;
       }
 
@@ -1450,7 +2055,7 @@
           throw new Error(data.message || `Error ${resp.status}: ${data.error_code || 'Verification Failed'}`);
         }
 
-        // Render Results
+        // 1. Render Results in Workbench
         resultBox.classList.remove('hidden');
         document.getElementById('cv-res-event-id').textContent = data.event_id;
         document.getElementById('cv-res-passport-id').textContent = data.passport_id;
@@ -1469,7 +2074,7 @@
           verdictBadge.className = 'px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40';
         }
 
-        // Header semantic indicator badges (Change 1)
+        // Header semantic indicator badges
         const headerMbBadge = document.getElementById('cv-res-header-mb-badge');
         if (headerMbBadge) {
           headerMbBadge.textContent = data.mass_balance_decision;
@@ -1501,15 +2106,29 @@
         document.getElementById('cv-res-mb-intake').textContent = `${data.mass_balance_result.intake_mass_kg} kg`;
         document.getElementById('cv-res-mb-claimed').textContent = `${data.mass_balance_result.claimed_total_recovered_kg} kg`;
 
-        // Render Claim-Level Breakdown (Change 1)
+        // Render Claim-Level Breakdown
         const breakdownList = document.getElementById('cv-res-mb-breakdown-list');
         if (breakdownList) {
           breakdownList.innerHTML = '';
           const items = data.claims_breakdown || [];
           if (items.length > 0) {
+            const passedCount = items.filter(i => i.status === 'VALID').length;
+            const failedCount = items.filter(i => i.status === 'IMPOSSIBLE').length;
+            const borderlineCount = items.filter(i => i.status === 'BORDERLINE').length;
+            
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'text-xs text-slate-300 font-mono pb-1 border-b border-slate-800/80 flex items-center justify-between';
+            summaryDiv.innerHTML = `
+              <span>${passedCount} / ${items.length} claims passed</span>
+              <span class="${failedCount > 0 ? 'text-rose-400' : (borderlineCount > 0 ? 'text-amber-400' : 'text-emerald-400')} font-bold">
+                ${failedCount > 0 ? `${failedCount} / ${items.length} failed` : (borderlineCount > 0 ? `${borderlineCount} borderline` : 'All passed')}
+              </span>
+            `;
+            breakdownList.appendChild(summaryDiv);
+
             items.forEach(c => {
               const div = document.createElement('div');
-              div.className = 'flex items-center justify-between p-1.5 rounded bg-slate-900 border border-slate-800 text-[11px] font-mono';
+              div.className = 'flex flex-col sm:flex-row sm:items-center justify-between p-2 rounded bg-slate-900 border border-slate-800 text-[11px] font-mono gap-1.5';
               
               let iconHtml, pillHtml;
               if (c.status === 'VALID') {
@@ -1524,12 +2143,15 @@
               }
 
               div.innerHTML = `
-                <div class="flex items-center truncate">
-                  ${iconHtml}
-                  <span class="font-medium text-slate-200">${c.material_name}</span>
+                <div class="space-y-0.5">
+                  <div class="flex items-center">
+                    ${iconHtml}
+                    <span class="font-medium text-slate-200">${c.material_name}</span>
+                    <span class="text-slate-400 ml-2">(${c.claimed_mass_kg.toFixed(2)} kg)</span>
+                  </div>
+                  ${c.reason ? `<div class="text-[10px] text-slate-400 pl-4">${c.reason}</div>` : ''}
                 </div>
-                <div class="flex items-center gap-2">
-                  <span class="text-slate-300">${c.claimed_mass_kg.toFixed(2)} kg</span>
+                <div class="self-end sm:self-center">
                   ${pillHtml}
                 </div>
               `;
@@ -1538,12 +2160,14 @@
           }
         }
 
-        // Render Concise Explanation Block (Change 1)
+        // Render Concise Explanation Block
         const explanationBox = document.getElementById('cv-res-mb-explanation-box');
         if (explanationBox) {
           const dec = data.mass_balance_decision;
           const concise = data.concise_explanation || data.mathematical_explanation;
-          explanationBox.textContent = `Decision: ${dec}\n\n${concise}`;
+          explanationBox.textContent = `Decision: ${dec}
+
+${concise}`;
         }
 
         // Evidence integrity
@@ -1562,19 +2186,12 @@
           bcBadge.textContent = 'ANCHORED';
           bcBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300';
           document.getElementById('cv-res-blockchain-tx').textContent = data.blockchain.tx_hash ? `${data.blockchain.tx_hash.substring(0, 14)}...` : '-';
-          if (document.getElementById('cv-res-blockchain-commitment')) {
-            document.getElementById('cv-res-blockchain-commitment').textContent = data.blockchain.evidence_commitment ? `0x${data.blockchain.evidence_commitment.substring(0, 12)}...` : '-';
-          }
-          if (document.getElementById('cv-res-blockchain-chain')) {
-            document.getElementById('cv-res-blockchain-chain').textContent = data.blockchain.chain_id || '31337';
-          }
+          document.getElementById('bc-view-tx').textContent = data.blockchain.tx_hash || 'N/A';
+          document.getElementById('bc-view-commitment').textContent = data.blockchain.evidence_commitment || 'N/A';
         } else {
           bcBadge.textContent = 'NOT ANCHORED';
           bcBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-slate-800 text-slate-400';
           document.getElementById('cv-res-blockchain-tx').textContent = 'N/A';
-          if (document.getElementById('cv-res-blockchain-commitment')) {
-            document.getElementById('cv-res-blockchain-commitment').textContent = '-';
-          }
         }
 
         // Certificate
@@ -1585,13 +2202,12 @@
           certBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-teal-500/20 text-teal-300';
           document.getElementById('cv-res-cert-id').textContent = data.certificate.certificate_id;
           document.getElementById('cv-res-cert-hash').textContent = `${data.certificate.certificate_hash.substring(0, 14)}...`;
-          if (document.getElementById('cv-res-cert-event-id')) {
-            document.getElementById('cv-res-cert-event-id').textContent = data.event_id || '-';
-          }
-          if (document.getElementById('cv-res-cert-tx-ref')) {
-            const txRef = data.certificate.blockchain_transaction_reference || data.blockchain.tx_hash || '-';
-            document.getElementById('cv-res-cert-tx-ref').textContent = txRef.length > 18 ? `${txRef.substring(0, 16)}...` : txRef;
-          }
+          
+          document.getElementById('cert-id').textContent = data.certificate.certificate_id;
+          document.getElementById('cert-commitment').textContent = data.certificate.evidence_commitment;
+          document.getElementById('cert-tx').textContent = data.certificate.blockchain_transaction_reference;
+          document.getElementById('bc-cert-input').value = data.certificate.certificate_id;
+
           certAction.innerHTML = `
             <button type="button" onclick="cvVerifyCertificateLive('${data.certificate.certificate_id}')" class="w-full text-center text-[10px] px-2 py-1 rounded bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/30 transition font-mono">
               <i class="fa-solid fa-arrows-rotate mr-1"></i> Verify Certificate On-Chain
@@ -1602,23 +2218,15 @@
           certBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-500/20 text-amber-300';
           document.getElementById('cv-res-cert-id').textContent = 'BLOCKED';
           document.getElementById('cv-res-cert-hash').textContent = '-';
-          if (document.getElementById('cv-res-cert-event-id')) {
-            document.getElementById('cv-res-cert-event-id').textContent = data.event_id || '-';
-          }
-          if (document.getElementById('cv-res-cert-tx-ref')) {
-            document.getElementById('cv-res-cert-tx-ref').textContent = '-';
-          }
           certAction.innerHTML = `<span class="text-[10px] text-amber-400 font-mono">${data.certificate_block_reason || 'Certificate blocked'}</span>`;
         }
 
-        // Render Certificate Verified Quantities Details Card (if issued)
+        // Certificate Verified Quantities Details Card
         const certDetailsCard = document.getElementById('cv-res-cert-details-card');
         const certMatTbody = document.getElementById('cv-res-cert-materials-tbody');
         const certMaterials = data.certificate ? (data.certificate.verified_material_quantities || data.certificate.verified_materials || []) : [];
         if (data.certificate && certMaterials.length > 0) {
           if (certDetailsCard) certDetailsCard.classList.remove('hidden');
-          if (document.getElementById('cv-res-cert-passport-id')) document.getElementById('cv-res-cert-passport-id').textContent = data.passport_id;
-          if (document.getElementById('cv-res-cert-commitment')) document.getElementById('cv-res-cert-commitment').textContent = data.certificate.evidence_commitment;
           if (certMatTbody) {
             certMatTbody.innerHTML = '';
             certMaterials.forEach(vm => {
@@ -1639,7 +2247,7 @@
         // Mathematical proof
         document.getElementById('cv-res-math-proof').textContent = data.mathematical_explanation;
 
-        // AI card
+        // AI Observation Result Card
         const aiCard = document.getElementById('cv-res-ai-card');
         const aiBadge = document.getElementById('cv-res-ai-badge');
         const aiDetails = document.getElementById('cv-res-ai-details');
@@ -1659,50 +2267,39 @@
             <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
             <div class="text-purple-300/90 pt-1 font-semibold">AI observes evidence; deterministic verification makes the decision.</div>
           `;
+
+          // Synchronize to Evidence & AI tab
+          document.getElementById('ai-audit-model').textContent = `${obs.provider} (${obs.model})`;
+          document.getElementById('ai-audit-units').textContent = `${obs.estimated_item_count} Units`;
+          document.getElementById('ai-audit-conf').textContent = `${(obs.confidence * 100).toFixed(1)}%`;
+          document.getElementById('ai-audit-prov').textContent = obs.execution_mode === 'SIMULATED' ? 'SIMULATED' : 'AI_ESTIMATED';
         } else {
           aiCard.classList.add('hidden');
         }
 
-        resultBox.scrollIntoView({ behavior: 'smooth' });
-
-        // Update dashboard panels for synchronicity across UI workbench
-        const dppStateBadge = document.getElementById('dpp-state-badge');
-        const mbVerdictBadge = document.getElementById('mb-verdict-badge');
-        if (data.overall_decision === 'VERIFIED') {
-          if (dppStateBadge) {
-            dppStateBadge.innerText = 'RECYCLING_VERIFIED';
-            dppStateBadge.className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-semibold';
-          }
-          if (mbVerdictBadge) {
-            mbVerdictBadge.innerText = 'VALID';
-            mbVerdictBadge.className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold';
-          }
-          if (data.certificate) {
-            if (document.getElementById('cert-id')) document.getElementById('cert-id').innerText = data.certificate.certificate_id;
-            if (document.getElementById('cert-commitment')) document.getElementById('cert-commitment').innerText = data.certificate.evidence_commitment;
-            if (document.getElementById('cert-tx')) document.getElementById('cert-tx').innerText = data.certificate.blockchain_transaction_reference;
-          }
-        } else if (data.overall_decision === 'FLAGGED') {
-          if (dppStateBadge) {
-            dppStateBadge.innerText = 'FLAGGED';
-            dppStateBadge.className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-semibold';
-          }
-          if (mbVerdictBadge) {
-            mbVerdictBadge.innerText = 'IMPOSSIBLE';
-            mbVerdictBadge.className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-bold';
-          }
-        } else if (data.overall_decision === 'REVIEW') {
-          if (dppStateBadge) {
-            dppStateBadge.innerText = data.lifecycle_state || 'RECYCLING_PENDING';
-            dppStateBadge.className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-semibold';
-          }
-          if (mbVerdictBadge) {
-            mbVerdictBadge.innerText = 'BORDERLINE';
-            mbVerdictBadge.className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-bold';
-          }
+        // 2. Synchronize to Investigation module if flagged or tampered
+        if (data.overall_decision === 'FLAGGED' || data.mass_balance_decision === 'IMPOSSIBLE') {
+          addInvestigationFlaggedRecord({
+            event_id: data.event_id,
+            passport_id: data.passport_id,
+            reason: data.concise_explanation || data.mathematical_explanation,
+            timestamp: new Date().toLocaleTimeString(),
+            state: 'FLAGGED'
+          });
         }
 
-        // Refresh passport list to reflect updated on-chain state
+        if (data.evidence_integrity_status !== 'VERIFIED') {
+          addInvestigationTamperedRecord({
+            event_id: data.event_id,
+            expected: data.evidence_bundle.bundle_keccak256_commitment,
+            observed: data.evidence_integrity_message,
+            status: 'EVIDENCE_INTEGRITY_FAILURE'
+          });
+        }
+
+        resultBox.scrollIntoView({ behavior: 'smooth' });
+
+        // Refresh passports
         await cvLoadPassports();
 
       } catch (e) {
@@ -1716,7 +2313,7 @@
 
     async function cvVerifyCertificateLive(certId) {
       if (!certId) {
-        certId = document.getElementById('cv-res-cert-id').textContent;
+        certId = document.getElementById('cv-res-cert-id')?.textContent;
       }
       if (!certId || certId === '-' || certId === 'BLOCKED') {
         alert('No certificate issued for this event.');
@@ -1727,7 +2324,12 @@
         const resp = await fetch(`/api/v1/certificates/verify/${certId}`);
         const data = await resp.json();
         if (resp.ok) {
-          alert(`✅ Certificate Authenticated on LOCAL TESTNET!\n\nCertificate ID: ${data.certificate_id}\nOn-Chain Commitment: ${data.evidence_commitment}\nTransaction Hash: ${data.tx_hash}\nStatus: ${data.status}`);
+          alert(`✅ Certificate Authenticated on LOCAL TESTNET!
+
+Certificate ID: ${data.certificate_id}
+On-Chain Commitment: ${data.evidence_commitment}
+Transaction Hash: ${data.tx_hash}
+Status: ${data.status}`);
         } else {
           alert(`❌ Verification failed: ${data.error || 'Certificate not verified on ledger'}`);
         }
@@ -1736,8 +2338,216 @@
       }
     }
 
-    // Initialize custom verification on DOM ready
+    // -------------------------------------------------------------------------
+    // Evidence & AI Audit View Synchronization
+    // -------------------------------------------------------------------------
+    function auditUpdateEvidenceView() {
+      const container = document.getElementById('evidence-audit-list');
+      const countBadge = document.getElementById('evidence-audit-count');
+      if (!container) return;
+
+      if (_cvUploadedFiles.length === 0) {
+        container.innerHTML = '<div class="text-xs text-slate-500 italic p-4 text-center border border-slate-800/80 rounded-xl">No evidence files uploaded yet.</div>';
+        if (countBadge) countBadge.textContent = '0 Files';
+        return;
+      }
+
+      if (countBadge) countBadge.textContent = `${_cvUploadedFiles.length} File${_cvUploadedFiles.length > 1 ? 's' : ''}`;
+      container.innerHTML = '';
+      _cvUploadedFiles.forEach(f => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1';
+        div.innerHTML = `
+          <div class="flex justify-between items-center text-slate-300 font-mono">
+            <span class="font-bold text-white flex items-center gap-1.5"><i class="fa-solid fa-file-image text-purple-400"></i> ${f.filename}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] ${f.provenance === 'MEASURED' ? 'provenance-measured' : (f.provenance === 'SIMULATED' ? 'provenance-simulated' : 'provenance-observed')}">${f.provenance}</span>
+          </div>
+          <div class="text-[10px] font-mono text-slate-500">ID: ${f.file_id} | ${(f.file_size_bytes / 1024).toFixed(1)} KB</div>
+          <div class="text-[10px] font-mono text-slate-400 truncate">SHA-256: 0x${f.sha256_hash}</div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // Blockchain & PoR Module Verification Helper
+    // -------------------------------------------------------------------------
+    async function bcVerifyCertificate() {
+      const certId = document.getElementById('bc-cert-input')?.value.trim();
+      const statusBox = document.getElementById('cert-auth-status');
+      if (!certId) {
+        alert('Please enter a Certificate ID.');
+        return;
+      }
+      statusBox.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Verifying cryptographic commitments on LOCAL TESTNET...';
+
+      try {
+        const resp = await fetch(`/api/v1/certificates/verify/${certId}`);
+        if (resp.ok) {
+          const data = await resp.json();
+          statusBox.className = 'pt-2 text-[11px] text-emerald-400 flex items-center gap-1.5 border-t border-slate-800/80';
+          statusBox.innerHTML = `<i class="fa-solid fa-circle-check"></i> <span>Verified on LOCAL TESTNET! Commitment: ${data.evidence_commitment.substring(0, 18)}...</span>`;
+          document.getElementById('cert-id').innerText = data.certificate_id;
+          document.getElementById('cert-commitment').innerText = data.evidence_commitment;
+          document.getElementById('cert-tx').innerText = data.tx_hash;
+        } else {
+          statusBox.className = 'pt-2 text-[11px] text-amber-400 flex items-center gap-1.5 border-t border-slate-800/80';
+          statusBox.innerHTML = `<i class="fa-solid fa-triangle-exclamation"></i> <span>Certificate not verified on ledger. Check ID or run Scenario A.</span>`;
+        }
+      } catch (e) {
+        statusBox.className = 'pt-2 text-[11px] text-rose-400 flex items-center gap-1.5 border-t border-slate-800/80';
+        statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark"></i> <span>Verification error: ${e.message}</span>`;
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // Investigation Module Synchronization Helpers
+    // -------------------------------------------------------------------------
+    function addInvestigationFlaggedRecord(rec) {
+      _flaggedEvents.unshift(rec);
+      const list = document.getElementById('investigation-flagged-list');
+      const count = document.getElementById('investigation-flagged-count');
+      if (count) count.textContent = `${_flaggedEvents.length} Flagged`;
+      if (!list) return;
+
+      list.innerHTML = '';
+      _flaggedEvents.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-xl bg-slate-950 border border-rose-500/30 text-xs space-y-1 font-mono';
+        div.innerHTML = `
+          <div class="flex justify-between items-center text-slate-300">
+            <span class="font-bold text-rose-400">${r.event_id}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-rose-500/20 text-rose-300">FLAGGED</span>
+          </div>
+          <div class="text-slate-400 text-[11px]">DPP: ${r.passport_id} | ${r.timestamp}</div>
+          <div class="text-[11px] text-rose-300/90 whitespace-pre-wrap">${r.reason}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    function addInvestigationTamperedRecord(rec) {
+      _tamperedEvents.unshift(rec);
+      const list = document.getElementById('investigation-tampered-list');
+      const count = document.getElementById('investigation-tampered-count');
+      if (count) count.textContent = `${_tamperedEvents.length} Breaches`;
+      if (!list) return;
+
+      list.innerHTML = '';
+      _tamperedEvents.forEach(r => {
+        const div = document.createElement('div');
+        div.className = 'p-3 rounded-xl bg-slate-950 border border-amber-500/30 text-xs space-y-1 font-mono';
+        div.innerHTML = `
+          <div class="flex justify-between items-center text-slate-300">
+            <span class="font-bold text-amber-400">${r.event_id}</span>
+            <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300">INTEGRITY BREACH</span>
+          </div>
+          <div class="text-[10px] text-slate-400 truncate">Expected Commitment: ${r.expected}</div>
+          <div class="text-[11px] text-amber-300/90">${r.observed}</div>
+        `;
+        list.appendChild(div);
+      });
+    }
+
+    // -------------------------------------------------------------------------
+    // Demo Lab Scenarios (Mandatory Scenarios A, B, C)
+    // -------------------------------------------------------------------------
+    async function runScenario(scenario) {
+      const btn = document.getElementById(`btn-scenario-${scenario.toLowerCase()}`);
+      const out = document.getElementById('scenario-output');
+      const title = document.getElementById('scenario-title');
+      const verdict = document.getElementById('scenario-verdict');
+      const stagesDiv = document.getElementById('scenario-stages');
+      const mathDiv = document.getElementById('scenario-math');
+
+      btn.classList.add('opacity-50', 'pointer-events-none');
+      out.classList.remove('hidden');
+      title.innerText = `Executing Scenario ${scenario}...`;
+      verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-mono bg-slate-800 text-slate-300';
+      verdict.innerText = 'PROCESSING';
+      stagesDiv.innerHTML = '<div class="text-xs text-slate-400 col-span-4">Running pipeline across schemas, mass balance, and blockchain...</div>';
+      mathDiv.classList.add('hidden');
+
+      try {
+        const resp = await fetch('/api/v1/demo/run-scenario', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ scenario: scenario })
+        });
+        const data = await resp.json();
+
+        title.innerText = data.title;
+        verdict.innerText = data.verdict;
+
+        if (data.verdict === 'VERIFIED') {
+          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+          if (data.certificate) {
+            document.getElementById('cert-id').innerText = data.certificate.certificate_id;
+            document.getElementById('cert-commitment').innerText = data.certificate.evidence_commitment;
+            document.getElementById('cert-tx').innerText = data.certificate.blockchain_transaction_reference;
+            document.getElementById('bc-view-tx').innerText = data.certificate.blockchain_transaction_reference;
+            document.getElementById('bc-view-commitment').innerText = data.certificate.evidence_commitment;
+            document.getElementById('bc-cert-input').value = data.certificate.certificate_id;
+          }
+        } else if (data.verdict === 'CLAIM FLAGGED') {
+          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-mono bg-rose-500/20 text-rose-300 border border-rose-500/30';
+          addInvestigationFlaggedRecord({
+            event_id: 'REV-2026-DEMO-B-FRAUD',
+            passport_id: 'DPP-EV-NMC622-DEMO-B',
+            reason: data.mathematical_proof || 'Cobalt recovery exceeds maximum plausible stoichiometric yield.',
+            timestamp: new Date().toLocaleTimeString(),
+            state: 'FLAGGED'
+          });
+        } else if (data.verdict === 'EVIDENCE_INTEGRITY_FAILURE') {
+          verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider font-mono bg-amber-500/20 text-amber-300 border border-amber-500/30';
+          addInvestigationTamperedRecord({
+            event_id: 'REV-2026-DEMO-C-TAMPER',
+            expected: '0x9f88a2c1... (Original Commit)',
+            observed: 'RFC 8785 canonical hash mismatch: Tampered scale receipt bytes detected.',
+            status: 'EVIDENCE_INTEGRITY_FAILURE'
+          });
+        }
+
+        // Render stage cards
+        stagesDiv.innerHTML = '';
+        data.stages.forEach(st => {
+          const card = document.createElement('div');
+          card.className = 'p-3 rounded-xl bg-slate-950 border border-slate-800 text-xs space-y-1 font-mono';
+          card.innerHTML = `
+            <div class="flex justify-between items-center text-slate-400 text-[10px]">
+              <span>Stage ${st.stage}</span>
+              <span class="text-emerald-400 font-bold">${st.status}</span>
+            </div>
+            <div class="font-semibold text-slate-200">${st.name}</div>
+            <div class="text-[11px] text-slate-400 truncate">${st.details || st.decision || st.tx_hash || ''}</div>
+          `;
+          stagesDiv.appendChild(card);
+        });
+
+        if (data.mathematical_proof) {
+          mathDiv.classList.remove('hidden');
+          mathDiv.innerText = "=== MATHEMATICAL FRAUD PROOF ===\n" + data.mathematical_proof;
+        }
+
+        out.scrollIntoView({ behavior: 'smooth' });
+        await cvLoadPassports();
+
+      } catch (err) {
+        title.innerText = 'Execution Failed';
+        verdict.innerText = 'ERROR';
+        verdict.className = 'px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 font-mono';
+        stagesDiv.innerHTML = `<div class="text-rose-400 text-xs font-mono col-span-4">${err.message}</div>`;
+      } finally {
+        btn.classList.remove('opacity-50', 'pointer-events-none');
+      }
+    }
+
+    // -------------------------------------------------------------------------
+    // App Initialization
+    // -------------------------------------------------------------------------
     document.addEventListener('DOMContentLoaded', () => {
+      const initialView = window.location.hash.replace('#', '') || 'overview';
+      navigateTo(initialView, false);
       cvLoadPassports();
     });
   </script>
