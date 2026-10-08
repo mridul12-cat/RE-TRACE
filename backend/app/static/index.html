@@ -96,6 +96,9 @@
           <button onclick="runScenario('C')" id="btn-scenario-c" class="px-4 py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-amber-600/20 active:scale-95">
             <i class="fa-solid fa-shield-halved"></i> Run Scenario C (Evidence Tampering)
           </button>
+          <button onclick="toggleCustomVerification()" id="btn-custom-verification" class="px-4 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-medium text-sm transition flex items-center gap-2 shadow-lg shadow-indigo-600/20 active:scale-95">
+            <i class="fa-solid fa-sliders"></i> Custom Verification
+          </button>
         </div>
       </div>
 
@@ -119,6 +122,478 @@
       <span class="px-2.5 py-1 rounded-md provenance-assumed font-mono">REFERENCE_ASSUMED (OEM BoM)</span>
       <span class="px-2.5 py-1 rounded-md provenance-simulated font-mono">SIMULATED (Test Fixture)</span>
     </div>
+
+    <!-- Fourth Entry Point: Custom Verification Workbench -->
+    <section id="custom-verification-section" class="rounded-2xl border border-indigo-500/40 bg-slate-900/90 p-6 shadow-2xl space-y-6">
+      <div class="flex flex-col lg:flex-row items-start lg:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+        <div class="space-y-1">
+          <div class="flex items-center gap-2">
+            <span class="w-8 h-8 rounded-lg bg-indigo-500/20 text-indigo-400 flex items-center justify-center">
+              <i class="fa-solid fa-sliders"></i>
+            </span>
+            <h2 class="text-lg font-bold text-white">Custom Recycling Verification Workbench</h2>
+            <span class="px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 font-mono text-xs">Generic Pipeline</span>
+          </div>
+          <p class="text-xs text-slate-400">
+            Select an existing DPP, submit custom facility weighbridge & recovered materials, upload physical evidence, execute optional AI computer vision observation, and run deterministic closed-form mass balance with local EVM ledger anchoring.
+          </p>
+        </div>
+        <div class="flex items-center gap-2">
+          <button type="button" onclick="cvResetDemoPassports()" class="px-3 py-1.5 rounded-lg bg-amber-950/40 hover:bg-amber-900/60 text-amber-300 text-xs font-mono border border-amber-500/30 transition flex items-center gap-1.5">
+            <i class="fa-solid fa-rotate-left"></i> Reset Demo DPP
+          </button>
+          <button type="button" onclick="cvLoadPassports()" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-mono transition flex items-center gap-1.5">
+            <i class="fa-solid fa-arrows-rotate"></i> Refresh DPPs
+          </button>
+        </div>
+      </div>
+
+      <!-- Main Form Grid: 2 Columns -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+        <!-- Column 1: Passport Selection & Facility Intake -->
+        <div class="space-y-5">
+          <!-- Step 1: Select DPP -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">1</span>
+                Select Existing Digital Product Passport (DPP)
+              </label>
+              <span id="cv-dpp-state-badge" class="px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-slate-800 text-slate-300">
+                LOADING...
+              </span>
+            </div>
+
+            <select id="cv-passport-select" onchange="cvOnPassportChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-xs font-mono text-white focus:outline-none focus:border-indigo-500">
+              <option value="">Loading available passports from /api/v1/passports...</option>
+            </select>
+
+            <!-- Passport Details Mini-Card -->
+            <div id="cv-dpp-details" class="space-y-2 text-xs bg-slate-900/50 p-3 rounded-lg border border-slate-800/80">
+              <div class="flex justify-between text-slate-300">
+                <span class="text-slate-400">Product Name:</span>
+                <span id="cv-dpp-product" class="font-medium text-right text-slate-200 truncate max-w-[260px]">-</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="text-slate-400">Category & Mass:</span>
+                <span id="cv-dpp-category-mass" class="font-mono text-slate-200">-</span>
+              </div>
+              <div class="flex justify-between text-slate-300">
+                <span class="text-slate-400">Manufacturer:</span>
+                <span id="cv-dpp-manufacturer" class="text-slate-200">-</span>
+              </div>
+            </div>
+
+            <!-- Lifecycle Eligibility Alert -->
+            <div id="cv-dpp-eligibility-alert" class="p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-slate-900 border border-slate-800 text-slate-300">
+              <div class="flex items-center gap-2">
+                <i class="fa-solid fa-spinner fa-spin text-indigo-400"></i>
+                <span id="cv-dpp-eligibility-text">Checking passport lifecycle state...</span>
+              </div>
+              <button id="cv-btn-advance-lifecycle" type="button" onclick="cvAdvanceLifecycle()" class="hidden self-start px-2 py-1 rounded bg-amber-600 hover:bg-amber-500 text-white text-[11px] font-medium transition">
+                <i class="fa-solid fa-forward mr-1"></i> Advance to RECYCLING_PENDING
+              </button>
+            </div>
+
+            <!-- Bill of Materials Accordion / Table -->
+            <div class="space-y-1.5 pt-1">
+              <div class="flex justify-between items-center text-[11px] text-slate-400 font-medium">
+                <span>Certified Bill of Materials (BoM Priors)</span>
+                <span class="px-1.5 py-0.5 rounded provenance-assumed text-[9px]">REFERENCE_ASSUMED</span>
+              </div>
+              <div class="max-h-36 overflow-y-auto border border-slate-800 rounded-lg">
+                <table class="w-full text-left text-[11px]">
+                  <thead class="bg-slate-900 text-slate-400 font-mono sticky top-0">
+                    <tr>
+                      <th class="p-1.5">Material</th>
+                      <th class="p-1.5">Nominal %</th>
+                      <th class="p-1.5">BAT Yield</th>
+                      <th class="p-1.5">Critical</th>
+                    </tr>
+                  </thead>
+                  <tbody id="cv-dpp-bom-tbody" class="divide-y divide-slate-800 text-slate-300">
+                    <tr><td colspan="4" class="p-2 text-center text-slate-500">Select a passport to view components</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Intake Gross Mass & Event Info -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+              <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">2</span>
+              Recycling Intake & Weighbridge Measurements
+            </label>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Facility ID:</label>
+                <input id="cv-facility-id" type="text" value="FAC-EU-ROTTERDAM-01" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Operator ID:</label>
+                <input id="cv-operator-id" type="text" value="OP-7782" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Processing Method:</label>
+                <select id="cv-processing-method" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
+                  <option value="HYDROMETALLURGICAL" selected>HYDROMETALLURGICAL</option>
+                  <option value="PYROMETALLURGICAL">PYROMETALLURGICAL</option>
+                  <option value="MECHANICAL_PHYSICAL">MECHANICAL_PHYSICAL</option>
+                  <option value="DIRECT_RECYCLING">DIRECT_RECYCLING</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Scale Uncertainty (±%):</label>
+                <input id="cv-scale-tolerance" type="number" step="0.1" min="0.0" max="5.0" value="0.5" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div>
+                <label class="block text-slate-400 mb-1">Intake Gross Mass (kg):</label>
+                <input id="cv-intake-mass" type="number" step="0.1" min="0.1" value="1000.0" onchange="cvOnIntakeMassChange()" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-emerald-300 font-bold focus:outline-none focus:border-indigo-500">
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Intake Mass Provenance:</label>
+                <select id="cv-intake-prov" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1.5 font-mono text-white focus:outline-none focus:border-indigo-500">
+                  <option value="OBSERVED" selected>OBSERVED (Facility Operator Log)</option>
+                  <option value="MEASURED">MEASURED (Certified Weighbridge Scale)</option>
+                  <option value="SIMULATED">SIMULATED (Bench Test)</option>
+                </select>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Column 2: Claimed Materials, Evidence Upload & AI -->
+        <div class="space-y-5">
+          <!-- Step 3: Claimed Recovered Secondary Materials -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">3</span>
+                Declared Recovered Secondary Materials
+              </label>
+              <div class="flex items-center gap-2">
+                <button type="button" onclick="cvPrefillNominal()" class="text-[11px] px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-indigo-300 border border-indigo-500/30 transition">
+                  <i class="fa-solid fa-wand-magic mr-1"></i> Prefill BAT Yields
+                </button>
+                <button type="button" onclick="cvAddMaterialRow()" class="text-[11px] px-2 py-0.5 rounded bg-indigo-600 hover:bg-indigo-500 text-white font-medium transition">
+                  <i class="fa-solid fa-plus mr-1"></i> Add Material
+                </button>
+              </div>
+            </div>
+
+            <div class="max-h-48 overflow-y-auto border border-slate-800 rounded-lg">
+              <table class="w-full text-left text-xs">
+                <thead class="bg-slate-900 text-slate-400 font-mono text-[11px] sticky top-0">
+                  <tr>
+                    <th class="p-1.5">Material</th>
+                    <th class="p-1.5">Claimed (kg)</th>
+                    <th class="p-1.5">Purity %</th>
+                    <th class="p-1.5">Provenance</th>
+                    <th class="p-1.5 text-center">Del</th>
+                  </tr>
+                </thead>
+                <tbody id="cv-materials-tbody" class="divide-y divide-slate-800 text-slate-300">
+                  <!-- Populated dynamically -->
+                </tbody>
+              </table>
+            </div>
+            <div class="flex justify-between items-center text-xs font-mono text-slate-400 pt-1">
+              <span>Total Claimed Recovery:</span>
+              <span id="cv-claimed-total-sum" class="font-bold text-white">0.00 kg</span>
+            </div>
+          </div>
+
+          <!-- Step 4: Physical Evidence Upload -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">4</span>
+                Physical Evidence Upload (MIME, SHA-256 & RFC 8785)
+              </label>
+              <button type="button" onclick="cvGenerateSampleEvidence()" class="text-[11px] px-2 py-0.5 rounded bg-emerald-950/60 hover:bg-emerald-900/60 text-emerald-300 border border-emerald-500/30 font-mono transition">
+                <i class="fa-solid fa-file-arrow-up mr-1"></i> Quick Test Slip
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-3 gap-2 text-xs">
+              <div class="sm:col-span-2">
+                <input id="cv-evidence-files" type="file" multiple accept="image/*,application/pdf" class="w-full text-xs text-slate-400 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-slate-800 file:text-slate-200 hover:file:bg-slate-700">
+              </div>
+              <div>
+                <select id="cv-upload-prov" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1.5 font-mono text-white text-xs">
+                  <option value="OBSERVED" selected>OBSERVED</option>
+                  <option value="MEASURED">MEASURED</option>
+                  <option value="SIMULATED">SIMULATED</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="flex gap-2">
+              <input id="cv-upload-desc" type="text" placeholder="Optional description (e.g. Weighbridge intake receipt)" class="flex-1 bg-slate-900 border border-slate-700 rounded-lg px-2.5 py-1 text-xs text-white focus:outline-none focus:border-indigo-500">
+              <button type="button" onclick="cvUploadFiles()" class="px-3 py-1 rounded-lg bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-medium transition">
+                Upload
+              </button>
+            </div>
+
+            <!-- Uploaded Evidence Files List -->
+            <div id="cv-evidence-list" class="space-y-1.5 max-h-32 overflow-y-auto">
+              <div class="text-[11px] text-slate-500 italic p-2 border border-slate-800/80 rounded-lg text-center">
+                No physical evidence files uploaded yet. Upload a receipt or click "Quick Test Slip".
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 5: Optional AI Observation & Submit -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-slate-200 flex items-center gap-1.5">
+                <span class="w-5 h-5 rounded-full bg-indigo-600/30 text-indigo-300 text-[11px] flex items-center justify-center font-bold">5</span>
+                Optional Dual-Mode AI Observation
+              </label>
+              <label class="relative inline-flex items-center cursor-pointer">
+                <input id="cv-ai-toggle" type="checkbox" onchange="cvToggleAI()" class="sr-only peer">
+                <div class="w-9 h-5 bg-slate-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-purple-600"></div>
+                <span class="ml-2 text-xs font-mono text-purple-300">Run AI</span>
+              </label>
+            </div>
+
+            <!-- AI Notice (Always Visible) -->
+            <div class="p-2.5 rounded-lg bg-purple-950/30 border border-purple-500/20 text-[11px] text-purple-300">
+              <i class="fa-solid fa-shield-halved mr-1"></i>
+              <strong>AI observes evidence; deterministic verification makes the decision.</strong>
+              <div class="text-purple-400/80 text-[10px] mt-0.5">Computer vision tags output as AI_ESTIMATED. It NEVER determines the verification verdict.</div>
+            </div>
+
+            <!-- AI Mode Selector (Shown when enabled) -->
+            <div id="cv-ai-mode-row" class="hidden grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs pt-1">
+              <div>
+                <label class="block text-slate-400 mb-1">Execution Mode:</label>
+                <select id="cv-ai-force-mode" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs">
+                  <option value="DETERMINISTIC_FIXTURE" selected>DETERMINISTIC_FIXTURE (SIMULATED)</option>
+                  <option value="LIVE_GEMINI">LIVE_GEMINI (Google Gemini 2.5)</option>
+                </select>
+              </div>
+              <div>
+                <label class="block text-slate-400 mb-1">Custom Event ID (Optional):</label>
+                <input id="cv-custom-event-id" type="text" placeholder="Auto-generated if empty" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-2 py-1 font-mono text-white text-xs focus:outline-none focus:border-indigo-500">
+              </div>
+            </div>
+
+            <!-- In-Page Error Banner -->
+            <div id="cv-error-banner" class="hidden p-3 rounded-xl bg-rose-950/80 border border-rose-500/50 text-rose-300 text-xs flex items-start gap-2">
+              <i class="fa-solid fa-circle-exclamation text-rose-400 mt-0.5"></i>
+              <div id="cv-error-banner-text" class="flex-1 font-mono"></div>
+              <button type="button" onclick="cvHideError()" class="text-rose-400 hover:text-white text-xs"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Verification Action Button -->
+            <div class="pt-2">
+              <button id="cv-btn-submit" type="button" onclick="cvSubmitVerification()" class="w-full py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-teal-500 hover:from-indigo-500 hover:to-teal-400 text-white font-bold text-sm tracking-wide shadow-lg shadow-indigo-500/20 active:scale-95 transition flex items-center justify-center gap-2">
+                <i class="fa-solid fa-atom"></i> Execute Custom Recycling Verification
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Execution Audit Result Banner (Initially Hidden) -->
+      <div id="cv-result-container" class="hidden mt-6 pt-6 border-t border-indigo-500/30 space-y-5">
+        <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 p-4 rounded-xl bg-slate-950 border border-slate-800">
+          <div class="space-y-0.5">
+            <div class="flex items-center gap-2">
+              <h3 class="text-base font-bold text-white flex items-center gap-2">
+                <i class="fa-solid fa-clipboard-check text-indigo-400"></i> Verification Audit Result
+              </h3>
+              <span id="cv-res-event-id" class="text-xs font-mono text-slate-400">REV-2026-CUSTOM</span>
+            </div>
+            <div class="text-xs text-slate-400">
+              Target Passport: <span id="cv-res-passport-id" class="font-mono text-slate-200">DPP-...</span> |
+              Lifecycle State: <span id="cv-res-lifecycle-state" class="font-mono text-emerald-400 font-bold">-</span>
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span id="cv-res-overall-verdict" class="px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono">
+              VERIFIED
+            </span>
+          </div>
+        </div>
+
+        <!-- 4 Core Result Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <!-- Card 1: Mass Balance Outcome -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">Mass Balance Gate</span>
+              <span id="cv-res-mb-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300">VALID</span>
+            </div>
+            <div class="text-xs space-y-1 font-mono text-slate-300">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Intake Mass:</span>
+                <span id="cv-res-mb-intake">1000.0 kg</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Claimed Recovery:</span>
+                <span id="cv-res-mb-claimed">541.3 kg</span>
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-400 line-clamp-2" id="cv-res-mb-summary">-</div>
+            <!-- Material breakdown table -->
+            <div class="pt-2 border-t border-slate-800/80">
+              <div class="text-[10px] font-semibold text-slate-400 mb-1">Claimed vs BoM Bounds:</div>
+              <div class="max-h-24 overflow-y-auto">
+                <table class="w-full text-left text-[10px] font-mono">
+                  <tbody id="cv-res-mb-breakdown-tbody" class="divide-y divide-slate-800/60 text-slate-300">
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Card 2: Evidence Integrity -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">Evidence Integrity</span>
+              <span id="cv-res-integrity-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300">VERIFIED</span>
+            </div>
+            <div class="text-xs space-y-1 font-mono text-slate-300">
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Manifest:</span>
+                <span id="cv-res-manifest-hash" class="truncate max-w-[130px]">0x...</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Commitment:</span>
+                <span id="cv-res-commitment-hash" class="truncate max-w-[130px]">0x...</span>
+              </div>
+            </div>
+            <div class="text-[11px] text-slate-400 line-clamp-2" id="cv-res-integrity-msg">All digests verified against physical disk records.</div>
+          </div>
+
+          <!-- Card 3: Blockchain Anchor -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">Ledger Anchor</span>
+              <span id="cv-res-blockchain-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300">ANCHORED</span>
+            </div>
+            <div class="text-xs space-y-1 font-mono text-slate-300">
+              <div class="flex justify-between">
+                <span class="text-slate-500">Network:</span>
+                <span class="text-emerald-400">LOCAL TESTNET</span>
+              </div>
+              <div class="flex justify-between">
+                <span class="text-slate-500">Chain ID:</span>
+                <span id="cv-res-blockchain-chain" class="text-slate-300">31337</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Commitment:</span>
+                <span id="cv-res-blockchain-commitment" class="truncate max-w-[120px] font-mono">-</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Tx Hash:</span>
+                <span id="cv-res-blockchain-tx" class="truncate max-w-[120px] font-mono">-</span>
+              </div>
+            </div>
+            <div class="text-[10px] text-slate-500 font-mono">Chain ID: 31337 | Immutable Proof</div>
+          </div>
+
+          <!-- Card 4: Proof-of-Recycling Certificate -->
+          <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+            <div class="flex justify-between items-center text-xs">
+              <span class="text-slate-400 font-medium">Proof-of-Recycling (PoR)</span>
+              <span id="cv-res-cert-badge" class="px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-teal-500/20 text-teal-300">ISSUED</span>
+            </div>
+            <div class="text-xs space-y-1 font-mono text-slate-300">
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Cert ID:</span>
+                <span id="cv-res-cert-id" class="text-teal-400 truncate max-w-[140px] font-bold">-</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Cert Hash:</span>
+                <span id="cv-res-cert-hash" class="truncate max-w-[130px] font-mono">-</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Event ID:</span>
+                <span id="cv-res-cert-event-id" class="truncate max-w-[130px] font-mono text-slate-300">-</span>
+              </div>
+              <div class="flex justify-between truncate">
+                <span class="text-slate-500">Tx Ref:</span>
+                <span id="cv-res-cert-tx-ref" class="truncate max-w-[130px] font-mono text-slate-300">-</span>
+              </div>
+            </div>
+            <div id="cv-res-cert-action">
+              <button id="cv-btn-verify-cert" type="button" onclick="cvVerifyCertificateLive()" class="w-full text-center text-[10px] px-2 py-1 rounded bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/30 transition font-mono">
+                <i class="fa-solid fa-arrows-rotate mr-1"></i> Verify Certificate On-Chain
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Verified Materials & Certificate Details Section (if issued) -->
+        <div id="cv-res-cert-details-card" class="hidden p-4 rounded-xl bg-teal-950/20 border border-teal-500/30 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-teal-300 flex items-center gap-1.5 font-mono">
+              <i class="fa-solid fa-certificate"></i> Proof-of-Recycling Verified Material Quantities & Audit Record
+            </span>
+            <span class="px-2 py-0.5 rounded font-mono text-[10px] bg-teal-500/20 text-teal-300 font-bold">VERIFIED OUTPUT</span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs font-mono text-teal-200/90 pt-1">
+            <div><strong>Passport ID:</strong> <span id="cv-res-cert-passport-id">-</span></div>
+            <div><strong>Evidence Commitment:</strong> <span id="cv-res-cert-commitment" class="truncate block max-w-full">-</span></div>
+          </div>
+          <div class="overflow-x-auto pt-1">
+            <table class="w-full text-left text-xs font-mono">
+              <thead class="bg-slate-900/80 text-teal-300 text-[11px]">
+                <tr>
+                  <th class="p-1.5">Material</th>
+                  <th class="p-1.5">Recovered Mass</th>
+                  <th class="p-1.5">Assayed Purity</th>
+                  <th class="p-1.5">Recovery Yield</th>
+                </tr>
+              </thead>
+              <tbody id="cv-res-cert-materials-tbody" class="divide-y divide-teal-900/40 text-slate-200 text-[11px]">
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Mathematical Proof Accordion -->
+        <div class="p-4 rounded-xl bg-slate-950 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between text-xs text-slate-400 font-semibold font-mono">
+            <span><i class="fa-solid fa-square-root-variable mr-1 text-emerald-400"></i> Closed-Form Mass-Balance Proof & Thermodynamic Explanations:</span>
+            <span class="text-slate-500 text-[10px]">Deterministic Closed-Form Engine</span>
+          </div>
+          <div id="cv-res-math-proof" class="text-xs font-mono whitespace-pre-wrap text-slate-300 bg-slate-900/60 p-3 rounded-lg border border-slate-800">
+            Mathematical proof details...
+          </div>
+        </div>
+
+        <!-- AI Observation Telemetry (if executed) -->
+        <div id="cv-res-ai-card" class="hidden p-4 rounded-xl bg-purple-950/20 border border-purple-500/30 space-y-2">
+          <div class="flex items-center justify-between text-xs">
+            <span class="font-semibold text-purple-300 flex items-center gap-1.5">
+              <i class="fa-solid fa-microchip"></i> AI Visual Observation Telemetry
+            </span>
+            <span id="cv-res-ai-badge" class="px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 font-bold">AI_ESTIMATED</span>
+          </div>
+          <div class="p-2 rounded bg-purple-950/40 border border-purple-500/20 text-[11px] text-purple-300 font-semibold flex items-center gap-2">
+            <i class="fa-solid fa-circle-info text-purple-400"></i>
+            <span>AI observes evidence; deterministic verification makes the decision.</span>
+          </div>
+          <div id="cv-res-ai-details" class="text-xs font-mono text-purple-200/90 space-y-1">
+            <!-- Populated dynamically -->
+          </div>
+        </div>
+      </div>
+    </section>
 
     <!-- 2x2 Grid of Core System Modules -->
     <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -442,6 +917,722 @@
         statusBox.innerHTML = `<i class="fa-solid fa-circle-xmark text-rose-400"></i> Verification failed: ${e.message}`;
       }
     }
+
+    // =========================================================================
+    // Custom Verification Workflow JavaScript Logic
+    // =========================================================================
+    let _cvPassports = [];
+    let _cvSelectedPassport = null;
+    let _cvUploadedFiles = [];
+
+    function toggleCustomVerification() {
+      const sec = document.getElementById('custom-verification-section');
+      sec.scrollIntoView({ behavior: 'smooth' });
+    }
+
+    async function cvLoadPassports() {
+      const select = document.getElementById('cv-passport-select');
+      select.innerHTML = '<option value="">Loading passports from /api/v1/passports...</option>';
+      try {
+        const resp = await fetch('/api/v1/passports');
+        if (!resp.ok) throw new Error('Failed to load passports');
+        _cvPassports = await resp.json();
+
+        select.innerHTML = '';
+        if (_cvPassports.length === 0) {
+          select.innerHTML = '<option value="">No passports found in store</option>';
+          return;
+        }
+
+        _cvPassports.forEach(p => {
+          const opt = document.createElement('option');
+          opt.value = p.passport_id;
+          const state = p.current_lifecycle_state || 'MANUFACTURED';
+          const eligibleTag = (state === 'RECYCLING_PENDING') ? ' [ELIGIBLE]' : ` [${state}]`;
+          opt.textContent = `${p.passport_id} — ${p.product_name}${eligibleTag}`;
+          select.appendChild(opt);
+        });
+
+        // Auto-select first or one with RECYCLING_PENDING
+        const pendingIdx = _cvPassports.findIndex(p => p.current_lifecycle_state === 'RECYCLING_PENDING');
+        if (pendingIdx >= 0) {
+          select.selectedIndex = pendingIdx;
+        } else {
+          select.selectedIndex = 0;
+        }
+
+        cvOnPassportChange();
+      } catch (err) {
+        console.error('Error loading passports:', err);
+        select.innerHTML = `<option value="">Error loading passports: ${err.message}</option>`;
+      }
+    }
+
+    function cvShowError(msg) {
+      const banner = document.getElementById('cv-error-banner');
+      const text = document.getElementById('cv-error-banner-text');
+      if (banner && text) {
+        text.textContent = msg;
+        banner.classList.remove('hidden');
+      }
+    }
+
+    function cvHideError() {
+      const banner = document.getElementById('cv-error-banner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    async function cvResetDemoPassports() {
+      try {
+        const resp = await fetch('/api/v1/passports/seed?force=true', { method: 'POST' });
+        if (!resp.ok) throw new Error('Failed to reset reference passports');
+        await cvLoadPassports();
+        cvHideError();
+      } catch (e) {
+        alert('Reset failed: ' + e.message);
+      }
+    }
+
+    function cvOnPassportChange() {
+      cvHideError();
+      const select = document.getElementById('cv-passport-select');
+      const pid = select.value;
+      _cvSelectedPassport = _cvPassports.find(p => p.passport_id === pid) || null;
+
+      const stateBadge = document.getElementById('cv-dpp-state-badge');
+      const productSpan = document.getElementById('cv-dpp-product');
+      const catMassSpan = document.getElementById('cv-dpp-category-mass');
+      const mfgSpan = document.getElementById('cv-dpp-manufacturer');
+      const alertBox = document.getElementById('cv-dpp-eligibility-alert');
+      const alertText = document.getElementById('cv-dpp-eligibility-text');
+      const advanceBtn = document.getElementById('cv-btn-advance-lifecycle');
+      const bomTbody = document.getElementById('cv-dpp-bom-tbody');
+      const submitBtn = document.getElementById('cv-btn-submit');
+
+      if (!_cvSelectedPassport) {
+        stateBadge.textContent = 'NONE';
+        productSpan.textContent = '-';
+        catMassSpan.textContent = '-';
+        mfgSpan.textContent = '-';
+        bomTbody.innerHTML = '<tr><td colspan="4" class="p-2 text-center text-slate-500">No passport selected</td></tr>';
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+        return;
+      }
+
+      const p = _cvSelectedPassport;
+      const state = p.current_lifecycle_state || 'MANUFACTURED';
+      stateBadge.textContent = state;
+
+      productSpan.textContent = `${p.product_name} (${p.product_id})`;
+      catMassSpan.textContent = `${p.product_category} | Initial Mass: ${p.initial_total_mass_kg} kg`;
+      mfgSpan.textContent = p.manufacturer || 'Unknown';
+
+      // Check eligibility (Section: only allow verification when lifecycle state is appropriate)
+      if (state === 'RECYCLING_PENDING') {
+        stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
+        alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300';
+        alertText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i><strong>Eligible for Recycling Verification:</strong> Lifecycle state is RECYCLING_PENDING.';
+        advanceBtn.classList.add('hidden');
+        submitBtn.disabled = false;
+        submitBtn.classList.remove('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      } else {
+        stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
+        alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-amber-950/40 border border-amber-500/30 text-amber-300';
+        alertText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1.5"></i><strong>Lifecycle Ineligible:</strong> Currently in <code class="font-bold">${state}</code>. Verification requires <code class="font-bold">RECYCLING_PENDING</code>.`;
+        advanceBtn.classList.remove('hidden');
+        submitBtn.disabled = true;
+        submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
+      }
+
+      // Render BoM
+      bomTbody.innerHTML = '';
+      if (p.material_composition && p.material_composition.components) {
+        p.material_composition.components.forEach(c => {
+          const tr = document.createElement('tr');
+          const critBadge = c.is_critical_raw_material ? '<span class="text-emerald-400 font-bold">YES</span>' : '<span class="text-slate-500">NO</span>';
+          const batYield = (100.0 - c.expected_yield_loss_pct).toFixed(1) + '%';
+          tr.innerHTML = `
+            <td class="p-1.5 font-medium text-slate-200">${c.material_name}</td>
+            <td class="p-1.5 font-mono text-slate-300">${c.percentage.toFixed(2)}%</td>
+            <td class="p-1.5 font-mono text-emerald-400">${batYield}</td>
+            <td class="p-1.5 text-center">${critBadge}</td>
+          `;
+          bomTbody.appendChild(tr);
+        });
+      }
+
+      // Prefill materials for the selected passport
+      cvPrefillNominal();
+    }
+
+    async function cvAdvanceLifecycle() {
+      if (!_cvSelectedPassport) return;
+      const pid = _cvSelectedPassport.passport_id;
+      const curState = _cvSelectedPassport.current_lifecycle_state;
+
+      const pathRoles = [
+        { from: 'FLAGGED', to: 'RETURNED', role: 'AUDITOR' },
+        { from: 'MANUFACTURED', to: 'IN_USE', role: 'MANUFACTURER' },
+        { from: 'IN_USE', to: 'RETURNED', role: 'COLLECTION_AGENT' },
+        { from: 'RETURNED', to: 'RECYCLING_PENDING', role: 'RECYCLER' }
+      ];
+
+      try {
+        let state = curState;
+        for (const step of pathRoles) {
+          if (state === step.from) {
+            await fetch('/api/v1/lifecycle/transition', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                passport_id: pid,
+                target_state: step.to,
+                actor_role: step.role
+              })
+            });
+            state = step.to;
+          }
+        }
+        await cvLoadPassports();
+      } catch (err) {
+        alert('Failed to advance lifecycle state: ' + err.message);
+      }
+    }
+
+    function cvAddMaterialRow(name = '', mass = '', purity = 95.0, prov = 'OBSERVED') {
+      const tbody = document.getElementById('cv-materials-tbody');
+      const tr = document.createElement('tr');
+      tr.className = 'border-b border-slate-800/60';
+      tr.innerHTML = `
+        <td class="p-1.5">
+          <input type="text" value="${name}" placeholder="Material name" class="cv-mat-name w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs text-white">
+        </td>
+        <td class="p-1.5">
+          <input type="number" step="0.1" min="0" value="${mass}" placeholder="0.0" oninput="cvRecalculateClaimedTotal()" class="cv-mat-mass w-20 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-emerald-300">
+        </td>
+        <td class="p-1.5">
+          <input type="number" step="0.1" min="0" max="100" value="${purity}" class="cv-mat-purity w-16 bg-slate-900 border border-slate-700 rounded px-2 py-1 text-xs font-mono text-slate-300">
+        </td>
+        <td class="p-1.5">
+          <select class="cv-mat-prov bg-slate-900 border border-slate-700 rounded px-1.5 py-1 text-[11px] font-mono text-white">
+            <option value="OBSERVED" ${prov === 'OBSERVED' ? 'selected' : ''}>OBSERVED</option>
+            <option value="MEASURED" ${prov === 'MEASURED' ? 'selected' : ''}>MEASURED</option>
+            <option value="SIMULATED" ${prov === 'SIMULATED' ? 'selected' : ''}>SIMULATED</option>
+          </select>
+        </td>
+        <td class="p-1.5 text-center">
+          <button type="button" onclick="cvRemoveMaterialRow(this)" class="text-rose-400 hover:text-rose-300 text-xs px-1.5 py-0.5">
+            <i class="fa-solid fa-trash"></i>
+          </button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+      cvRecalculateClaimedTotal();
+    }
+
+    function cvRemoveMaterialRow(btn) {
+      const tr = btn.closest('tr');
+      if (tr) tr.remove();
+      cvRecalculateClaimedTotal();
+    }
+
+    function cvOnIntakeMassChange() {
+      // Intentionally empty for manual user flexibility
+    }
+
+    function cvPrefillNominal() {
+      if (!_cvSelectedPassport || !_cvSelectedPassport.material_composition) {
+        cvAddMaterialRow('Nickel', 165.6, 99.2, 'OBSERVED');
+        cvAddMaterialRow('Cobalt', 55.8, 99.5, 'OBSERVED');
+        cvAddMaterialRow('Lithium', 21.0, 98.5, 'OBSERVED');
+        return;
+      }
+
+      const intakeMass = parseFloat(document.getElementById('cv-intake-mass').value) || 1000.0;
+      const tbody = document.getElementById('cv-materials-tbody');
+      tbody.innerHTML = '';
+
+      _cvSelectedPassport.material_composition.components.forEach(c => {
+        if (c.percentage > 0 && c.expected_yield_loss_pct < 100.0) {
+          const nominalYield = 1.0 - (c.expected_yield_loss_pct / 100.0);
+          const recoveredKg = (intakeMass * (c.percentage / 100.0) * nominalYield).toFixed(2);
+          cvAddMaterialRow(c.material_name, recoveredKg, 95.0, 'OBSERVED');
+        }
+      });
+      cvRecalculateClaimedTotal();
+    }
+
+    function cvRecalculateClaimedTotal() {
+      const rows = document.querySelectorAll('#cv-materials-tbody tr');
+      let total = 0.0;
+      rows.forEach(r => {
+        const massInput = r.querySelector('.cv-mat-mass');
+        if (massInput) {
+          const val = parseFloat(massInput.value) || 0.0;
+          total += val;
+        }
+      });
+      document.getElementById('cv-claimed-total-sum').textContent = `${total.toFixed(2)} kg`;
+    }
+
+    function cvToggleAI() {
+      const toggle = document.getElementById('cv-ai-toggle');
+      const row = document.getElementById('cv-ai-mode-row');
+      if (toggle.checked) {
+        row.classList.remove('hidden');
+      } else {
+        row.classList.add('hidden');
+      }
+    }
+
+    async function cvUploadFiles() {
+      const fileInput = document.getElementById('cv-evidence-files');
+      const prov = document.getElementById('cv-upload-prov').value;
+      const desc = document.getElementById('cv-upload-desc').value.trim() || 'Physical evidence upload';
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        alert('Please choose at least one file to upload.');
+        return;
+      }
+
+      for (let i = 0; i < fileInput.files.length; i++) {
+        const file = fileInput.files[i];
+        const fd = new FormData();
+        fd.append('file', file);
+        fd.append('provenance_category', prov);
+        fd.append('description', desc);
+
+        try {
+          const resp = await fetch('/api/v1/evidence/upload', {
+            method: 'POST',
+            body: fd
+          });
+          if (!resp.ok) {
+            const err = await resp.json();
+            alert(`Upload failed for ${file.name}: ${err.message || resp.statusText}`);
+            continue;
+          }
+          const rec = await resp.json();
+          _cvUploadedFiles.push(rec);
+        } catch (e) {
+          alert(`Network error uploading ${file.name}: ${e.message}`);
+        }
+      }
+      fileInput.value = '';
+      cvRenderUploadedFiles();
+    }
+
+    async function cvGenerateSampleEvidence() {
+      const prov = document.getElementById('cv-upload-prov').value;
+      const header = new Uint8Array([0xFF, 0xD8, 0xFF, 0xE0, 0x00, 0x10, 0x4A, 0x46, 0x49, 0x46, 0x00, 0x01, 0x01, 0x00, 0x00, 0x01, 0x00, 0x01, 0x00, 0x00]);
+      const body = new TextEncoder().encode("SAMPLE_WEIGHBRIDGE_INSPECTION_SLIP_" + Date.now());
+      const full = new Uint8Array(header.length + body.length);
+      full.set(header, 0);
+      full.set(body, header.length);
+
+      const blob = new Blob([full], { type: 'image/jpeg' });
+      const fd = new FormData();
+      fd.append('file', blob, `weighbridge_slip_${Date.now()}.jpg`);
+      fd.append('provenance_category', prov);
+      fd.append('description', 'Automated facility test scale receipt slip');
+
+      try {
+        const resp = await fetch('/api/v1/evidence/upload', {
+          method: 'POST',
+          body: fd
+        });
+        if (!resp.ok) throw new Error('Failed to upload test slip');
+        const rec = await resp.json();
+        _cvUploadedFiles.push(rec);
+        cvRenderUploadedFiles();
+      } catch (err) {
+        alert('Error creating sample slip: ' + err.message);
+      }
+    }
+
+    function cvRenderUploadedFiles() {
+      const container = document.getElementById('cv-evidence-list');
+      if (_cvUploadedFiles.length === 0) {
+        container.innerHTML = '<div class="text-[11px] text-slate-500 italic p-2 border border-slate-800/80 rounded-lg text-center">No physical evidence files uploaded yet.</div>';
+        return;
+      }
+
+      container.innerHTML = '';
+      _cvUploadedFiles.forEach((f, idx) => {
+        const div = document.createElement('div');
+        div.className = 'p-2 rounded-lg bg-slate-900 border border-slate-800 text-xs flex items-center justify-between gap-2';
+        const provBadgeClass = f.provenance === 'MEASURED'
+          ? 'provenance-measured'
+          : (f.provenance === 'SIMULATED' ? 'bg-amber-500/20 text-amber-300 border border-amber-500/30 font-bold' : 'provenance-observed');
+        div.innerHTML = `
+          <div class="truncate space-y-0.5">
+            <div class="font-medium text-slate-200 truncate flex items-center gap-1.5">
+              <i class="fa-solid fa-file-invoice text-indigo-400"></i>
+              <span>${f.filename}</span>
+              <span class="text-[10px] font-mono text-slate-400">(${f.file_id})</span>
+              <span class="text-[9px] font-mono px-1 rounded bg-emerald-500/20 text-emerald-300">UPLOADED</span>
+            </div>
+            <div class="text-[10px] font-mono text-slate-500 truncate">
+              SHA-256: 0x${f.sha256_hash.substring(0, 16)}... | ${(f.file_size_bytes / 1024).toFixed(1)} KB
+            </div>
+          </div>
+          <div class="flex items-center gap-2">
+            <span class="px-2 py-0.5 rounded text-[10px] font-mono ${provBadgeClass}">${f.provenance}</span>
+            <button type="button" onclick="cvRemoveUploadedFile(${idx})" class="text-slate-500 hover:text-rose-400 text-xs">
+              <i class="fa-solid fa-xmark"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function cvRemoveUploadedFile(idx) {
+      _cvUploadedFiles.splice(idx, 1);
+      cvRenderUploadedFiles();
+    }
+
+    async function cvSubmitVerification() {
+      cvHideError();
+
+      if (!_cvSelectedPassport) {
+        cvShowError('Please select a Digital Product Passport.');
+        return;
+      }
+
+      // Pre-flight lifecycle verification
+      if (_cvSelectedPassport.current_lifecycle_state !== 'RECYCLING_PENDING') {
+        cvShowError(`Passport ${_cvSelectedPassport.passport_id} is in state ${_cvSelectedPassport.current_lifecycle_state}. It must be in RECYCLING_PENDING to execute verification.`);
+        return;
+      }
+
+      // Auto-upload if files were selected in input but user did not click 'Upload Files'
+      if (_cvUploadedFiles.length === 0) {
+        const fileInput = document.getElementById('cv-evidence-files');
+        if (fileInput && fileInput.files && fileInput.files.length > 0) {
+          await cvUploadFiles();
+        }
+      }
+
+      if (_cvUploadedFiles.length === 0) {
+        cvShowError('At least one physical evidence file is required. Upload a file or click "Quick Test Slip".');
+        return;
+      }
+
+      const rows = document.querySelectorAll('#cv-materials-tbody tr');
+      const claims = [];
+      rows.forEach(r => {
+        const name = r.querySelector('.cv-mat-name').value.trim();
+        const mass = parseFloat(r.querySelector('.cv-mat-mass').value);
+        const purity = parseFloat(r.querySelector('.cv-mat-purity').value) || 95.0;
+        const prov = r.querySelector('.cv-mat-prov').value;
+        if (name && !isNaN(mass)) {
+          claims.push({
+            material_name: name,
+            claimed_mass_kg: mass,
+            purity_pct: purity,
+            provenance: prov
+          });
+        }
+      });
+
+      if (claims.length === 0) {
+        cvShowError('Please declare at least one recovered material claim.');
+        return;
+      }
+
+      const intakeMass = parseFloat(document.getElementById('cv-intake-mass').value);
+      if (isNaN(intakeMass) || intakeMass <= 0) {
+        cvShowError('Intake gross mass must be greater than 0.');
+        return;
+      }
+
+      const btn = document.getElementById('cv-btn-submit');
+      const resultBox = document.getElementById('cv-result-container');
+      btn.disabled = true;
+      btn.classList.add('opacity-50', 'pointer-events-none');
+      btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin mr-1"></i> Running Deterministic Verification & Ledger Pipeline...';
+
+      const payload = {
+        passport_id: _cvSelectedPassport.passport_id,
+        facility_id: document.getElementById('cv-facility-id').value.trim() || 'FAC-EU-ROTTERDAM-01',
+        operator_id: document.getElementById('cv-operator-id').value.trim() || 'OP-7782',
+        processing_method: document.getElementById('cv-processing-method').value,
+        intake_gross_mass_kg: intakeMass,
+        intake_mass_provenance: document.getElementById('cv-intake-prov').value,
+        claimed_materials: claims,
+        evidence_file_ids: _cvUploadedFiles.map(f => f.file_id),
+        event_id: document.getElementById('cv-custom-event-id').value.trim() || null,
+        run_ai_observation: document.getElementById('cv-ai-toggle').checked,
+        ai_force_mode: document.getElementById('cv-ai-force-mode').value,
+        scale_uncertainty_pct: parseFloat(document.getElementById('cv-scale-tolerance').value) || 0.5,
+      };
+
+      try {
+        const resp = await fetch('/api/v1/custom-verification/verify', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+        if (!resp.ok) {
+          throw new Error(data.message || `Error ${resp.status}: ${data.error_code || 'Verification Failed'}`);
+        }
+
+        // Render Results
+        resultBox.classList.remove('hidden');
+        document.getElementById('cv-res-event-id').textContent = data.event_id;
+        document.getElementById('cv-res-passport-id').textContent = data.passport_id;
+        document.getElementById('cv-res-lifecycle-state').textContent = data.lifecycle_state;
+
+        // Overall decision badge
+        const verdictBadge = document.getElementById('cv-res-overall-verdict');
+        verdictBadge.textContent = data.overall_decision;
+        if (data.overall_decision === 'VERIFIED') {
+          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-emerald-500/20 text-emerald-300 border border-emerald-500/40';
+        } else if (data.overall_decision === 'REVIEW') {
+          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-blue-500/20 text-blue-300 border border-blue-500/40';
+        } else if (data.overall_decision === 'FLAGGED') {
+          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-rose-500/20 text-rose-300 border border-rose-500/40';
+        } else {
+          verdictBadge.className = 'px-4 py-1.5 rounded-full text-xs font-extrabold uppercase tracking-wider font-mono bg-amber-500/20 text-amber-300 border border-amber-500/40';
+        }
+
+        // Mass balance
+        const mbBadge = document.getElementById('cv-res-mb-badge');
+        mbBadge.textContent = data.mass_balance_decision;
+        if (data.mass_balance_decision === 'VALID') {
+          mbBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300';
+        } else if (data.mass_balance_decision === 'BORDERLINE') {
+          mbBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-500/20 text-amber-300';
+        } else {
+          mbBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-500/20 text-rose-300';
+        }
+        document.getElementById('cv-res-mb-intake').textContent = `${data.mass_balance_result.intake_mass_kg} kg`;
+        document.getElementById('cv-res-mb-claimed').textContent = `${data.mass_balance_result.claimed_total_recovered_kg} kg`;
+        document.getElementById('cv-res-mb-summary').textContent = data.mathematical_explanation.substring(0, 120) + '...';
+
+        // Render Claimed vs BoM Breakdown Table
+        const breakdownTbody = document.getElementById('cv-res-mb-breakdown-tbody');
+        if (breakdownTbody && data.mass_balance_result) {
+          breakdownTbody.innerHTML = '';
+          const expMap = data.mass_balance_result.expected_recoverable_kg || {};
+          const bandMap = data.mass_balance_result.tolerance_bands_kg || {};
+          const diffMap = data.mass_balance_result.discrepancies_kg || {};
+
+          claims.forEach(c => {
+            const tr = document.createElement('tr');
+            const exp = expMap[c.material_name] !== undefined ? `${expMap[c.material_name].toFixed(2)} kg` : 'N/A';
+            const band = bandMap[c.material_name] ? `[${bandMap[c.material_name][0].toFixed(1)} - ${bandMap[c.material_name][1].toFixed(1)}]` : '-';
+            const diff = diffMap[c.material_name] !== undefined ? diffMap[c.material_name] : null;
+            const diffStr = diff !== null ? (diff >= 0 ? `+${diff.toFixed(2)} kg` : `${diff.toFixed(2)} kg`) : '-';
+            const diffColor = diff !== null ? (Math.abs(diff) <= 0.01 ? 'text-emerald-400' : (diff > 0 ? 'text-amber-300' : 'text-slate-400')) : 'text-slate-400';
+
+            tr.innerHTML = `
+              <td class="p-1 font-medium text-slate-200">${c.material_name}</td>
+              <td class="p-1 font-mono text-emerald-300">${c.claimed_mass_kg.toFixed(2)} kg</td>
+              <td class="p-1 font-mono text-slate-400">${exp}</td>
+              <td class="p-1 font-mono text-[9px] text-slate-500">${band}</td>
+              <td class="p-1 font-mono ${diffColor}">${diffStr}</td>
+            `;
+            breakdownTbody.appendChild(tr);
+          });
+        }
+
+        // Evidence integrity
+        const intBadge = document.getElementById('cv-res-integrity-badge');
+        intBadge.textContent = data.evidence_integrity_status;
+        intBadge.className = data.evidence_integrity_status === 'VERIFIED'
+          ? 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300'
+          : 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-rose-500/20 text-rose-300';
+        document.getElementById('cv-res-manifest-hash').textContent = `0x${data.evidence_bundle.canonical_manifest_sha256.substring(0, 16)}...`;
+        document.getElementById('cv-res-commitment-hash').textContent = `${data.evidence_bundle.bundle_keccak256_commitment.substring(0, 16)}...`;
+        document.getElementById('cv-res-integrity-msg').textContent = data.evidence_integrity_message;
+
+        // Blockchain
+        const bcBadge = document.getElementById('cv-res-blockchain-badge');
+        if (data.blockchain && data.blockchain.is_anchored) {
+          bcBadge.textContent = 'ANCHORED';
+          bcBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-emerald-500/20 text-emerald-300';
+          document.getElementById('cv-res-blockchain-tx').textContent = data.blockchain.tx_hash ? `${data.blockchain.tx_hash.substring(0, 14)}...` : '-';
+          if (document.getElementById('cv-res-blockchain-commitment')) {
+            document.getElementById('cv-res-blockchain-commitment').textContent = data.blockchain.evidence_commitment ? `0x${data.blockchain.evidence_commitment.substring(0, 12)}...` : '-';
+          }
+          if (document.getElementById('cv-res-blockchain-chain')) {
+            document.getElementById('cv-res-blockchain-chain').textContent = data.blockchain.chain_id || '31337';
+          }
+        } else {
+          bcBadge.textContent = 'NOT ANCHORED';
+          bcBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-slate-800 text-slate-400';
+          document.getElementById('cv-res-blockchain-tx').textContent = 'N/A';
+          if (document.getElementById('cv-res-blockchain-commitment')) {
+            document.getElementById('cv-res-blockchain-commitment').textContent = '-';
+          }
+        }
+
+        // Certificate
+        const certBadge = document.getElementById('cv-res-cert-badge');
+        const certAction = document.getElementById('cv-res-cert-action');
+        if (data.certificate) {
+          certBadge.textContent = 'ISSUED';
+          certBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-teal-500/20 text-teal-300';
+          document.getElementById('cv-res-cert-id').textContent = data.certificate.certificate_id;
+          document.getElementById('cv-res-cert-hash').textContent = `${data.certificate.certificate_hash.substring(0, 14)}...`;
+          if (document.getElementById('cv-res-cert-event-id')) {
+            document.getElementById('cv-res-cert-event-id').textContent = data.event_id || '-';
+          }
+          if (document.getElementById('cv-res-cert-tx-ref')) {
+            const txRef = data.certificate.blockchain_transaction_reference || data.blockchain.tx_hash || '-';
+            document.getElementById('cv-res-cert-tx-ref').textContent = txRef.length > 18 ? `${txRef.substring(0, 16)}...` : txRef;
+          }
+          certAction.innerHTML = `
+            <button type="button" onclick="cvVerifyCertificateLive('${data.certificate.certificate_id}')" class="w-full text-center text-[10px] px-2 py-1 rounded bg-teal-600/30 hover:bg-teal-600/50 text-teal-300 border border-teal-500/30 transition font-mono">
+              <i class="fa-solid fa-arrows-rotate mr-1"></i> Verify Certificate On-Chain
+            </button>
+          `;
+        } else {
+          certBadge.textContent = 'BLOCKED';
+          certBadge.className = 'px-2 py-0.5 rounded font-mono font-bold text-[11px] bg-amber-500/20 text-amber-300';
+          document.getElementById('cv-res-cert-id').textContent = 'BLOCKED';
+          document.getElementById('cv-res-cert-hash').textContent = '-';
+          if (document.getElementById('cv-res-cert-event-id')) {
+            document.getElementById('cv-res-cert-event-id').textContent = data.event_id || '-';
+          }
+          if (document.getElementById('cv-res-cert-tx-ref')) {
+            document.getElementById('cv-res-cert-tx-ref').textContent = '-';
+          }
+          certAction.innerHTML = `<span class="text-[10px] text-amber-400 font-mono">${data.certificate_block_reason || 'Certificate blocked'}</span>`;
+        }
+
+        // Render Certificate Verified Quantities Details Card (if issued)
+        const certDetailsCard = document.getElementById('cv-res-cert-details-card');
+        const certMatTbody = document.getElementById('cv-res-cert-materials-tbody');
+        const certMaterials = data.certificate ? (data.certificate.verified_material_quantities || data.certificate.verified_materials || []) : [];
+        if (data.certificate && certMaterials.length > 0) {
+          if (certDetailsCard) certDetailsCard.classList.remove('hidden');
+          if (document.getElementById('cv-res-cert-passport-id')) document.getElementById('cv-res-cert-passport-id').textContent = data.passport_id;
+          if (document.getElementById('cv-res-cert-commitment')) document.getElementById('cv-res-cert-commitment').textContent = data.certificate.evidence_commitment;
+          if (certMatTbody) {
+            certMatTbody.innerHTML = '';
+            certMaterials.forEach(vm => {
+              const tr = document.createElement('tr');
+              tr.innerHTML = `
+                <td class="p-1.5 font-medium text-slate-100">${vm.material_name}</td>
+                <td class="p-1.5 font-mono text-emerald-300">${vm.recovered_mass_kg.toFixed(2)} kg</td>
+                <td class="p-1.5 font-mono text-teal-300">${vm.purity_pct.toFixed(2)}%</td>
+                <td class="p-1.5 font-mono text-cyan-300">${vm.recovery_yield_pct.toFixed(2)}%</td>
+              `;
+              certMatTbody.appendChild(tr);
+            });
+          }
+        } else {
+          if (certDetailsCard) certDetailsCard.classList.add('hidden');
+        }
+
+        // Mathematical proof
+        document.getElementById('cv-res-math-proof').textContent = data.mathematical_explanation;
+
+        // AI card
+        const aiCard = document.getElementById('cv-res-ai-card');
+        const aiBadge = document.getElementById('cv-res-ai-badge');
+        const aiDetails = document.getElementById('cv-res-ai-details');
+        if (data.ai_observation) {
+          aiCard.classList.remove('hidden');
+          const obs = data.ai_observation;
+          if (aiBadge) {
+            aiBadge.textContent = obs.execution_mode === 'SIMULATED' ? 'SIMULATED FIXTURE' : (obs.execution_mode === 'LIVE' ? 'LIVE GEMINI' : 'AI_ESTIMATED');
+            aiBadge.className = obs.execution_mode === 'SIMULATED'
+              ? 'px-2 py-0.5 rounded font-mono text-[10px] bg-amber-500/20 text-amber-300 font-bold'
+              : 'px-2 py-0.5 rounded font-mono text-[10px] bg-purple-500/20 text-purple-300 font-bold';
+          }
+          aiDetails.innerHTML = `
+            <div><strong>Model / Provider:</strong> ${obs.provider} (${obs.model}) [${obs.execution_mode}]</div>
+            <div><strong>Items Observed:</strong> ${obs.estimated_item_count} units | <strong>Confidence:</strong> ${(obs.confidence * 100).toFixed(1)}%</div>
+            <div><strong>Notice:</strong> ${data.ai_notice || ''}</div>
+          `;
+        } else {
+          aiCard.classList.add('hidden');
+        }
+
+        resultBox.scrollIntoView({ behavior: 'smooth' });
+
+        // Update dashboard panels for synchronicity across UI workbench
+        const dppStateBadge = document.getElementById('dpp-state-badge');
+        const mbVerdictBadge = document.getElementById('mb-verdict-badge');
+        if (data.overall_decision === 'VERIFIED') {
+          if (dppStateBadge) {
+            dppStateBadge.innerText = 'RECYCLING_VERIFIED';
+            dppStateBadge.className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-semibold';
+          }
+          if (mbVerdictBadge) {
+            mbVerdictBadge.innerText = 'VALID';
+            mbVerdictBadge.className = 'px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 text-xs font-mono font-bold';
+          }
+          if (data.certificate) {
+            if (document.getElementById('cert-id')) document.getElementById('cert-id').innerText = data.certificate.certificate_id;
+            if (document.getElementById('cert-commitment')) document.getElementById('cert-commitment').innerText = data.certificate.evidence_commitment;
+            if (document.getElementById('cert-tx')) document.getElementById('cert-tx').innerText = data.certificate.blockchain_transaction_reference;
+          }
+        } else if (data.overall_decision === 'FLAGGED') {
+          if (dppStateBadge) {
+            dppStateBadge.innerText = 'FLAGGED';
+            dppStateBadge.className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-semibold';
+          }
+          if (mbVerdictBadge) {
+            mbVerdictBadge.innerText = 'IMPOSSIBLE';
+            mbVerdictBadge.className = 'px-2.5 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-mono font-bold';
+          }
+        } else if (data.overall_decision === 'REVIEW') {
+          if (dppStateBadge) {
+            dppStateBadge.innerText = data.lifecycle_state || 'RECYCLING_PENDING';
+            dppStateBadge.className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-semibold';
+          }
+          if (mbVerdictBadge) {
+            mbVerdictBadge.innerText = 'BORDERLINE';
+            mbVerdictBadge.className = 'px-2.5 py-1 rounded-full bg-amber-500/20 text-amber-300 text-xs font-mono font-bold';
+          }
+        }
+
+        // Refresh passport list to reflect updated on-chain state
+        await cvLoadPassports();
+
+      } catch (e) {
+        cvShowError('Verification Execution Failed: ' + e.message);
+      } finally {
+        btn.disabled = false;
+        btn.classList.remove('opacity-50', 'pointer-events-none');
+        btn.innerHTML = '<i class="fa-solid fa-atom"></i> Execute Custom Recycling Verification';
+      }
+    }
+
+    async function cvVerifyCertificateLive(certId) {
+      if (!certId) {
+        certId = document.getElementById('cv-res-cert-id').textContent;
+      }
+      if (!certId || certId === '-' || certId === 'BLOCKED') {
+        alert('No certificate issued for this event.');
+        return;
+      }
+
+      try {
+        const resp = await fetch(`/api/v1/certificates/verify/${certId}`);
+        const data = await resp.json();
+        if (resp.ok) {
+          alert(`✅ Certificate Authenticated on LOCAL TESTNET!\n\nCertificate ID: ${data.certificate_id}\nOn-Chain Commitment: ${data.evidence_commitment}\nTransaction Hash: ${data.tx_hash}\nStatus: ${data.status}`);
+        } else {
+          alert(`❌ Verification failed: ${data.error || 'Certificate not verified on ledger'}`);
+        }
+      } catch (err) {
+        alert(`Verification request failed: ${err.message}`);
+      }
+    }
+
+    // Initialize custom verification on DOM ready
+    document.addEventListener('DOMContentLoaded', () => {
+      cvLoadPassports();
+    });
   </script>
 </body>
 </html>
