@@ -934,6 +934,31 @@ class TestCustomVerificationWorkflow(unittest.TestCase):
         # Verify state was not mutated
         self.assertEqual(blockchain_service.get_lifecycle_state(pid_verified), LifecycleState.RECYCLING_VERIFIED)
 
+    # -------------------------------------------------------------------------
+    # 25. UI Element Containment & Alert Layout Integrity
+    # -------------------------------------------------------------------------
+    def test_25_ui_element_containment_and_eligibility_layout(self):
+        """Test 25: Dashboard HTML prevents state-node overflow and avoids flex item text fragmentation."""
+        import os
+        html_path = os.path.join("backend", "app", "static", "index.html")
+        self.assertTrue(os.path.exists(html_path))
+        with open(html_path, "r", encoding="utf-8") as f:
+            html_content = f.read()
+
+        # 1. State machine node containment
+        self.assertIn("min-w-0 truncate", html_content, "State nodes must have min-w-0 and truncate to prevent horizontal overflow")
+        self.assertIn("grid grid-cols-2 xl:grid-cols-4", html_content, "State machine grid must be responsive to card widths")
+
+        # 2. Eligibility text container must not treat text chunks as flex items
+        self.assertNotIn('<div id="cv-dpp-eligibility-text" class="flex items-center">', html_content,
+                         "cv-dpp-eligibility-text must not be a bare flex container causing inline text node fragmentation")
+        self.assertIn('id="cv-dpp-eligibility-text" class="text-xs leading-relaxed"', html_content)
+
+        # 3. cvOnPassportChange uses structured wrapper with items-start and min-w-0
+        self.assertIn('flex items-start gap-2.5', html_content)
+        self.assertIn('flex-1 min-w-0 leading-relaxed', html_content)
+
 
 if __name__ == "__main__":
     unittest.main()
+

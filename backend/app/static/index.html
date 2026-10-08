@@ -513,23 +513,23 @@
                   <span class="font-semibold text-slate-300">Lifecycle State Machine Tracking</span>
                   <span class="text-[10px] font-mono text-slate-400">Strict Guard Conditions</span>
                 </div>
-                <div class="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-mono">
-                  <div id="state-node-manufactured" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                <div class="grid grid-cols-2 xl:grid-cols-4 gap-2 text-center font-mono">
+                  <div id="state-node-manufactured" class="px-1.5 py-2 rounded bg-slate-900 border border-slate-800 text-slate-500 text-[10px] xl:text-[11px] tracking-tight font-semibold flex items-center justify-center min-w-0 truncate">
                     MANUFACTURED
                   </div>
-                  <div id="state-node-returned" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                  <div id="state-node-returned" class="px-1.5 py-2 rounded bg-slate-900 border border-slate-800 text-slate-500 text-[10px] xl:text-[11px] tracking-tight font-semibold flex items-center justify-center min-w-0 truncate">
                     RETURNED
                   </div>
-                  <div id="state-node-pending" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                  <div id="state-node-pending" class="px-1.5 py-2 rounded bg-slate-900 border border-slate-800 text-slate-500 text-[10px] xl:text-[11px] tracking-tight font-semibold flex items-center justify-center min-w-0 truncate">
                     RECYCLING_PENDING
                   </div>
-                  <div id="state-node-verified" class="p-2 rounded bg-slate-900 border border-slate-800 text-slate-400">
+                  <div id="state-node-verified" class="px-1.5 py-2 rounded bg-slate-900 border border-slate-800 text-slate-500 text-[10px] xl:text-[11px] tracking-tight font-semibold flex items-center justify-center min-w-0 truncate">
                     RECYCLING_VERIFIED
                   </div>
                 </div>
-                <div class="p-2.5 rounded-lg bg-rose-950/20 border border-rose-500/20 text-[11px] text-rose-300 flex items-center justify-between">
-                  <span><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-400"></i><strong>Quarantine Rule:</strong> <code>FLAGGED</code> state halts recycling credit and requires authorized audit resolution.</span>
-                  <span id="dpp-flagged-indicator" class="font-mono font-bold text-rose-400 uppercase text-[10px]">Normal</span>
+                <div class="p-2.5 rounded-lg bg-rose-950/20 border border-rose-500/20 text-[11px] text-rose-300 flex items-center justify-between gap-3">
+                  <div class="flex-1 min-w-0 leading-relaxed"><i class="fa-solid fa-triangle-exclamation mr-1.5 text-rose-400"></i><strong class="font-semibold text-rose-200">Quarantine Rule:</strong> <code class="font-bold font-mono px-1 py-0.5 rounded bg-rose-950/60 border border-rose-500/30 text-rose-300">FLAGGED</code> state halts recycling credit and requires authorized audit resolution.</div>
+                  <span id="dpp-flagged-indicator" class="shrink-0 font-mono font-bold uppercase text-[10px] px-2 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-400">NORMAL</span>
                 </div>
               </div>
             </div>
@@ -589,8 +589,11 @@
 
               <!-- DPP Eligibility Alert Box -->
               <div id="cv-dpp-eligibility-alert" class="p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-slate-950 border border-slate-800 text-slate-400">
-                <div id="cv-dpp-eligibility-text" class="flex items-center">
-                  <i class="fa-solid fa-circle-info mr-1.5 text-slate-400"></i> Loading passport eligibility...
+                <div id="cv-dpp-eligibility-text" class="text-xs leading-relaxed">
+                  <div class="flex items-start gap-2.5">
+                    <i class="fa-solid fa-circle-info text-slate-400 mt-0.5 shrink-0 text-xs"></i>
+                    <div class="flex-1 min-w-0 leading-relaxed">Loading passport eligibility...</div>
+                  </div>
                 </div>
                 <button type="button" id="cv-btn-advance-lifecycle" onclick="cvAdvanceLifecycle()" class="hidden self-start px-2 py-1 rounded bg-amber-500/20 hover:bg-amber-500/30 text-amber-300 font-mono text-[11px] border border-amber-500/30 transition">
                   <i class="fa-solid fa-forward-step mr-1"></i> Transition to RECYCLING_PENDING
@@ -1500,20 +1503,24 @@
         state === 'RECYCLING_PENDING' ? 'bg-emerald-500/20 text-emerald-300' : (state === 'FLAGGED' ? 'bg-rose-500/20 text-rose-300' : 'bg-slate-800 text-slate-400')
       }`;
 
-      // Highlight lifecycle state node
+      // Highlight lifecycle state node with responsive typography and containment
+      const baseNodeClass = 'px-1.5 py-2 rounded text-[10px] xl:text-[11px] tracking-tight font-mono flex items-center justify-center text-center transition min-w-0 truncate';
       ['manufactured', 'returned', 'pending', 'verified'].forEach(st => {
         const elem = document.getElementById(`state-node-${st}`);
-        if (elem) elem.className = 'p-2 rounded bg-slate-900 border border-slate-800 text-slate-500';
+        if (elem) elem.className = `${baseNodeClass} bg-slate-900 border border-slate-800 text-slate-500`;
       });
-      if (state === 'MANUFACTURED') document.getElementById('state-node-manufactured').className = 'p-2 rounded bg-blue-500/20 border border-blue-500 text-blue-300 font-bold';
-      if (state === 'RETURNED') document.getElementById('state-node-returned').className = 'p-2 rounded bg-indigo-500/20 border border-indigo-500 text-indigo-300 font-bold';
-      if (state === 'RECYCLING_PENDING') document.getElementById('state-node-pending').className = 'p-2 rounded bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-bold';
-      if (state === 'RECYCLING_VERIFIED') document.getElementById('state-node-verified').className = 'p-2 rounded bg-teal-500/20 border border-teal-500 text-teal-300 font-bold';
+      if (state === 'MANUFACTURED') document.getElementById('state-node-manufactured').className = `${baseNodeClass} bg-blue-500/20 border border-blue-500 text-blue-300 font-bold`;
+      if (state === 'RETURNED') document.getElementById('state-node-returned').className = `${baseNodeClass} bg-indigo-500/20 border border-indigo-500 text-indigo-300 font-bold`;
+      if (state === 'RECYCLING_PENDING') document.getElementById('state-node-pending').className = `${baseNodeClass} bg-emerald-500/20 border border-emerald-500 text-emerald-300 font-bold`;
+      if (state === 'RECYCLING_VERIFIED') document.getElementById('state-node-verified').className = `${baseNodeClass} bg-teal-500/20 border border-teal-500 text-teal-300 font-bold`;
 
       const flagInd = document.getElementById('dpp-flagged-indicator');
       if (flagInd) {
-        flagInd.textContent = state === 'FLAGGED' ? 'QUARANTINED' : 'Normal';
-        flagInd.className = state === 'FLAGGED' ? 'font-mono font-bold text-rose-400 uppercase text-[10px]' : 'font-mono font-bold text-slate-500 uppercase text-[10px]';
+        const isFlagged = (state === 'FLAGGED');
+        flagInd.textContent = isFlagged ? 'QUARANTINED' : 'NORMAL';
+        flagInd.className = isFlagged
+          ? 'shrink-0 px-2 py-0.5 rounded font-mono font-bold uppercase text-[10px] bg-rose-950/60 border border-rose-500/40 text-rose-300'
+          : 'shrink-0 px-2 py-0.5 rounded font-mono font-bold uppercase text-[10px] bg-slate-900 border border-slate-800 text-slate-400';
       }
 
       // Render BoM
@@ -1644,6 +1651,9 @@
         if (catMassSpan) catMassSpan.textContent = '-';
         if (mfgSpan) mfgSpan.textContent = '-';
         if (bomTbody) bomTbody.innerHTML = '<tr><td colspan="4" class="p-2 text-center text-slate-500">No passport selected</td></tr>';
+        if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-slate-950 border border-slate-800 text-slate-400';
+        if (alertText) alertText.innerHTML = '<div class="flex items-start gap-2.5"><i class="fa-solid fa-circle-info text-slate-400 mt-0.5 shrink-0 text-xs"></i><div class="flex-1 min-w-0 leading-relaxed">Select a passport to verify eligibility.</div></div>';
+        if (advanceBtn) advanceBtn.classList.add('hidden');
         if (submitBtn) {
           submitBtn.disabled = true;
           submitBtn.classList.add('opacity-50', 'cursor-not-allowed', 'pointer-events-none');
@@ -1666,7 +1676,7 @@
           stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-500/30';
         }
         if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-emerald-950/40 border border-emerald-500/30 text-emerald-300';
-        if (alertText) alertText.innerHTML = '<i class="fa-solid fa-circle-check text-emerald-400 mr-1.5"></i><strong>Eligible for Recycling Verification:</strong> Lifecycle state is RECYCLING_PENDING.';
+        if (alertText) alertText.innerHTML = '<div class="flex items-start gap-2.5"><i class="fa-solid fa-circle-check text-emerald-400 mt-0.5 shrink-0 text-xs"></i><div class="flex-1 min-w-0 leading-relaxed"><strong class="font-semibold text-emerald-200">Eligible for Recycling Verification:</strong> Lifecycle state is <code class="font-bold font-mono px-1 py-0.5 rounded bg-emerald-950/60 border border-emerald-500/30 text-emerald-300">RECYCLING_PENDING</code>.</div></div>';
         if (advanceBtn) advanceBtn.classList.add('hidden');
         if (submitBtn) {
           submitBtn.disabled = false;
@@ -1678,7 +1688,7 @@
           stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30';
         }
         if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-rose-950/40 border border-rose-500/30 text-rose-300';
-        if (alertText) alertText.innerHTML = '<i class="fa-solid fa-ban text-rose-400 mr-1.5"></i><strong>Quarantine Active:</strong> Passport is <code class="font-bold">FLAGGED</code>. Quarantined products cannot be submitted for verification without formal auditor resolution.';
+        if (alertText) alertText.innerHTML = '<div class="flex items-start gap-2.5"><i class="fa-solid fa-ban text-rose-400 mt-0.5 shrink-0 text-xs"></i><div class="flex-1 min-w-0 leading-relaxed"><strong class="font-semibold text-rose-200">Quarantine Active:</strong> Passport is <code class="font-bold font-mono px-1 py-0.5 rounded bg-rose-950/60 border border-rose-500/30 text-rose-300">FLAGGED</code>. Quarantined products cannot be submitted for verification without formal auditor resolution.</div></div>';
         if (advanceBtn) advanceBtn.classList.add('hidden');
         if (submitBtn) {
           submitBtn.disabled = true;
@@ -1690,7 +1700,7 @@
           stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-teal-500/20 text-teal-300 border border-teal-500/30';
         }
         if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-teal-950/40 border border-teal-500/30 text-teal-300';
-        if (alertText) alertText.innerHTML = '<i class="fa-solid fa-lock text-teal-400 mr-1.5"></i><strong>Already Verified:</strong> Recycling is already verified and anchored on-chain. Protected against duplicate processing.';
+        if (alertText) alertText.innerHTML = '<div class="flex items-start gap-2.5"><i class="fa-solid fa-lock text-teal-400 mt-0.5 shrink-0 text-xs"></i><div class="flex-1 min-w-0 leading-relaxed"><strong class="font-semibold text-teal-200">Already Verified:</strong> Recycling is already verified and anchored on-chain. Protected against duplicate processing.</div></div>';
         if (advanceBtn) advanceBtn.classList.add('hidden');
         if (submitBtn) {
           submitBtn.disabled = true;
@@ -1702,7 +1712,7 @@
           stateBadge.className = 'px-2 py-0.5 rounded text-[11px] font-mono font-bold bg-amber-500/20 text-amber-300 border border-amber-500/30';
         }
         if (alertBox) alertBox.className = 'p-2.5 rounded-lg text-xs flex flex-col gap-1.5 bg-amber-950/40 border border-amber-500/30 text-amber-300';
-        if (alertText) alertText.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-amber-400 mr-1.5"></i><strong>Lifecycle Ineligible:</strong> Currently in <code class="font-bold">${state}</code>. Verification requires <code class="font-bold">RECYCLING_PENDING</code>.`;
+        if (alertText) alertText.innerHTML = `<div class="flex items-start gap-2.5"><i class="fa-solid fa-triangle-exclamation text-amber-400 mt-0.5 shrink-0 text-xs"></i><div class="flex-1 min-w-0 leading-relaxed"><strong class="font-semibold text-amber-200">Lifecycle Ineligible:</strong> Currently in <code class="font-bold font-mono px-1 py-0.5 rounded bg-amber-950/60 border border-amber-500/30 text-amber-300">${state}</code>. Verification requires <code class="font-bold font-mono px-1 py-0.5 rounded bg-amber-950/60 border border-amber-500/30 text-amber-300">RECYCLING_PENDING</code>.</div></div>`;
         if (advanceBtn) advanceBtn.classList.remove('hidden');
         if (submitBtn) {
           submitBtn.disabled = true;
