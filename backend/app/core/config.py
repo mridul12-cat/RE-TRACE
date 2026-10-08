@@ -40,6 +40,15 @@ def _get_default_gemini_model() -> str:
     return raw or "gemini-3.8-flash"
 
 
+def _get_default_gemini_timeout() -> float:
+    raw = os.getenv("GEMINI_TIMEOUT_SECONDS", "30.0").strip()
+    try:
+        val = float(raw)
+        return max(5.0, min(60.0, val))
+    except (ValueError, TypeError):
+        return 30.0
+
+
 class Settings(BaseModel):
     app_name: str = "RE:TRACE Circular Economy Verification Platform"
     app_version: str = "1.1.1"
@@ -71,6 +80,9 @@ class Settings(BaseModel):
     )
     gemini_model: str = Field(
         default_factory=_get_default_gemini_model
+    )
+    gemini_timeout_seconds: float = Field(
+        default_factory=_get_default_gemini_timeout
     )
     ai_mode: str = Field(
         default_factory=lambda: os.getenv("AI_MODE", "AUTO")

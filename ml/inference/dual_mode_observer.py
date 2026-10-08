@@ -55,6 +55,35 @@ SUPPORTED_GEMINI_MIMES = [
     "application/pdf",
 ]
 
+DEFAULT_GEMINI_TIMEOUT_SECONDS: float = 30.0
+MIN_GEMINI_TIMEOUT_SECONDS: float = 5.0
+MAX_GEMINI_TIMEOUT_SECONDS: float = 60.0
+
+
+WORKSPACE_ROOT = Path(__file__).resolve().parent.parent.parent
+
+
+def _load_env_file():
+    """Loads key-value pairs from .env into os.environ if not already defined."""
+    env_file = WORKSPACE_ROOT / ".env"
+    if env_file.is_file():
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if not line or line.startswith("#") or "=" not in line:
+                        continue
+                    key, val = line.split("=", 1)
+                    key = key.strip()
+                    val = val.strip().strip("'\"")
+                    if key and key not in os.environ:
+                        os.environ[key] = val
+        except Exception:
+            pass
+
+
+_load_env_file()
+
 
 class DualModeAIObservationService:
     """
@@ -66,33 +95,79 @@ class DualModeAIObservationService:
         default_mode: str = "AUTO",
         api_key: Optional[str] = None,
         model: Optional[str] = None,
+        timeout: Optional[float] = None,
     ):
         self.default_mode = default_mode.upper()
-        self.api_key = api_key or os.getenv("GEMINI_API_KEY")
+        self._explicit_api_key = api_key
+        self.api_key = api_key
         self._explicit_model = model
-        self.model = model or os.getenv("GEMINI_MODEL", "gemini-3.8-flash")
+        self.model = model
+        self._explicit_timeout = timeout
+        self.timeout = timeout
         self._cached_fixtures: Dict[str, Dict[str, Any]] = {}
         self._load_fixtures()
 
     @property
     def current_api_key(self) -> Optional[str]:
         """Resolves active Gemini API key from instance or environment."""
-        return self.api_key or os.getenv("GEMINI_API_KEY") or None
+        if self._explicit_api_key is not None:
+            raw = self._explicit_api_key.strip()
+            return raw if raw else None
+        if self.api_key and self.api_key.strip():
+            return self.api_key.strip()
+        env_key = os.getenv("GEMINI_API_KEY")
+        if env_key and env_key.strip():
+            return env_key.strip()
+        return None
 
     @property
     def current_model(self) -> str:
-        """Resolves active Gemini model identifier from environment, instance, or default."""
-        env_model = os.getenv("GEMINI_MODEL")
-        if env_model and env_model.strip():
-            raw_model = env_model.strip()
-        elif self._explicit_model and self._explicit_model.strip():
+        """Resolves active Gemini model identifier from instance, environment, or default."""
+        if self._explicit_model and self._explicit_model.strip():
             raw_model = self._explicit_model.strip()
+        elif os.getenv("GEMINI_MODEL") and os.getenv("GEMINI_MODEL").strip():
+            raw_model = os.getenv("GEMINI_MODEL").strip()
         else:
             raw_model = (self.model or "gemini-3.8-flash").strip()
 
         if raw_model.startswith("models/"):
             raw_model = raw_model[len("models/"):].strip()
         return raw_model or "gemini-3.8-flash"
+
+    def _resolve_timeout(self, raw_val: Optional[Any] = None) -> float:
+        """
+        Resolves and clamps timeout to [MIN_GEMINI_TIMEOUT_SECONDS, MAX_GEMINI_TIMEOUT_SECONDS].
+        Defaults to 30.0 seconds. Clamps to prevent hanging or sub-second timeouts.
+        """
+        val = raw_val
+        if val is None:
+            val = self._explicit_timeout
+        if val is None:
+            val = os.getenv("GEMINI_TIMEOUT_SECONDS")
+        if val is None:
+            val = DEFAULT_GEMINI_TIMEOUT_SECONDS
+
+        try:
+            val_f = float(val)
+        except (ValueError, TypeError):
+            val_f = DEFAULT_GEMINI_TIMEOUT_SECONDS
+
+        # Clamping to safe boundaries per Section R5
+        if val_f < MIN_GEMINI_TIMEOUT_SECONDS:
+            val_f = MIN_GEMINI_TIMEOUT_SECONDS
+        elif val_f > MAX_GEMINI_TIMEOUT_SECONDS:
+            val_f = MAX_GEMINI_TIMEOUT_SECONDS
+        return val_f
+
+    @property
+    def current_timeout(self) -> float:
+        """Resolves active Gemini HTTP timeout clamped between 5.0s and 60.0s."""
+        if self._explicit_timeout is not None:
+            return self._resolve_timeout(self._explicit_timeout)
+        env_timeout = os.getenv("GEMINI_TIMEOUT_SECONDS")
+        if env_timeout is not None and env_timeout.strip():
+            return self._resolve_timeout(env_timeout.strip())
+        return self._resolve_timeout(self.timeout if self.timeout is not None else DEFAULT_GEMINI_TIMEOUT_SECONDS)
 
     def _load_fixtures(self):
         if not FIXTURES_DIR.exists():
@@ -155,13 +230,17 @@ class DualModeAIObservationService:
                 if curr_key and curr_key in safe_err_msg:
                     safe_err_msg = safe_err_msg.replace(curr_key, "[REDACTED]")
 
+                if not allow_fallback:
+                    logger.warning(
+                        f"Live Gemini API invocation failed ({safe_err_msg}). "
+                        f"allow_fallback=False; propagating exception."
+                    )
+                    raise
+
                 logger.warning(
                     f"Live Gemini API invocation failed ({safe_err_msg}). "
                     f"Gracefully degrading to DETERMINISTIC_FIXTURE (Case I fallback)."
                 )
-
-                if not allow_fallback:
-                    raise
 
                 return self._observe_fixture(
                     product_id=product_id,
@@ -306,8 +385,9 @@ class DualModeAIObservationService:
             method="POST",
         )
 
+        timeout_sec = self.current_timeout
         try:
-            with urllib.request.urlopen(req, timeout=20.0) as resp:
+            with urllib.request.urlopen(req, timeout=timeout_sec) as resp:
                 resp_bytes = resp.read()
                 return json.loads(resp_bytes.decode("utf-8"))
         except urllib.error.HTTPError as http_err:
@@ -337,8 +417,9 @@ class DualModeAIObservationService:
                     f"GEMINI_UNAVAILABLE: Configured Gemini model '{clean_model}' was not found or is unavailable (HTTP 404){body_suffix}."
                 ) from http_err
             elif code in (500, 502, 503, 504):
+                body_suffix = f": {err_body[:160]}" if err_body else ""
                 raise GeminiUnavailableError(
-                    f"GEMINI_UNAVAILABLE: Google Gemini API is temporarily unavailable (HTTP {code})."
+                    f"GEMINI_UNAVAILABLE: Google Gemini API is temporarily unavailable (HTTP {code}){body_suffix}."
                 ) from http_err
             else:
                 body_suffix = f": {err_body[:160]}" if err_body else ""
@@ -346,8 +427,17 @@ class DualModeAIObservationService:
                     f"GEMINI_UNAVAILABLE: Unexpected response from Gemini API (HTTP {code}){body_suffix}."
                 ) from http_err
         except (urllib.error.URLError, TimeoutError, OSError) as net_err:
+            reason = getattr(net_err, "reason", None)
+            is_timeout = (
+                isinstance(net_err, TimeoutError)
+                or isinstance(reason, TimeoutError)
+                or (reason is not None and "timeout" in str(type(reason).__name__).lower())
+                or "timed out" in str(net_err).lower()
+                or (reason is not None and "timed out" in str(reason).lower())
+            )
+            err_name = "timeout" if is_timeout else type(net_err).__name__
             raise GeminiUnavailableError(
-                f"GEMINI_UNAVAILABLE: Connection failure or timeout contacting Gemini API: {type(net_err).__name__}."
+                f"GEMINI_UNAVAILABLE: Connection failure or timeout contacting Gemini API: {err_name}."
             ) from net_err
 
     def request_text(self, prompt: str) -> str:

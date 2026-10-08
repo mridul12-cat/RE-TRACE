@@ -25,10 +25,12 @@ Verifies:
 21. DPP selection prefers RECYCLING_PENDING without state mutation
 """
 
+import os
 import concurrent.futures
 import unittest
 import uuid
 from datetime import datetime, timezone
+from unittest.mock import patch
 from fastapi.testclient import TestClient
 
 from backend.app.main import app
@@ -827,7 +829,8 @@ class TestCustomVerificationWorkflow(unittest.TestCase):
             "run_ai_observation": True,
             "ai_force_mode": "LIVE_GEMINI",
         }
-        res2 = self.client.post("/api/v1/custom-verification/verify", json=req2)
+        with patch.dict(os.environ, {"GEMINI_API_KEY": ""}):
+            res2 = self.client.post("/api/v1/custom-verification/verify", json=req2)
         self.assertEqual(res2.status_code, 200)
         data2 = res2.json()
         self.assertIsNotNone(data2.get("ai_observation"))
