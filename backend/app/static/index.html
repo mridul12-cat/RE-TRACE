@@ -1871,13 +1871,17 @@
         card.className = 'p-2.5 rounded-lg bg-purple-950/40 border border-purple-500/40 text-xs text-purple-200 space-y-1 font-mono';
         card.innerHTML = `
           <div class="flex items-center justify-between">
-            <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-purple-600 text-white">LIVE GEMINI</span>
-            <span class="text-purple-300 text-[10px]">Multimodal API</span>
+            <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-purple-600 text-white">REQUESTED: LIVE GEMINI</span>
+            <span class="text-purple-300 text-[10px]">Multimodal API (On Execution)</span>
           </div>
           <p class="text-[11px] text-purple-200">
-            AI observation is generated from the uploaded evidence. AI remains non-authoritative; deterministic verification makes the final decision.
+            Selected for execution. Real multimodal inference will be requested from Google Gemini. AI observes evidence; deterministic verification makes the decision.
           </p>
         `;
+        const auditMode = document.getElementById('ai-audit-mode');
+        if (auditMode && (auditMode.textContent.includes('Awaiting') || auditMode.textContent.includes('Default'))) {
+          auditMode.textContent = 'Awaiting Execution (Requested: LIVE GEMINI)';
+        }
       } else {
         card.className = 'p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 space-y-1 font-mono';
         card.innerHTML = `
@@ -1889,6 +1893,10 @@
             Uses replayable simulated AI output for offline, reproducible testing. Uploaded evidence is not sent to Gemini in this mode.
           </p>
         `;
+        const auditMode = document.getElementById('ai-audit-mode');
+        if (auditMode && (auditMode.textContent.includes('Awaiting') || auditMode.textContent.includes('Requested: LIVE GEMINI'))) {
+          auditMode.textContent = 'Awaiting Verification (Requested: DETERMINISTIC FIXTURE)';
+        }
       }
     }
 
@@ -2363,6 +2371,21 @@ ${concise}`;
               auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-amber-950/60 text-amber-300 border border-amber-500/30 font-bold';
             }
 
+            // Reconcile Step 5 mode card to reflect fallback truthfulness
+            const cvModeCard = document.getElementById('cv-ai-mode-card');
+            if (cvModeCard) {
+              cvModeCard.className = 'p-2.5 rounded-lg bg-amber-950/40 border border-amber-500/40 text-xs text-amber-200 space-y-1 font-mono';
+              cvModeCard.innerHTML = `
+                <div class="flex items-center justify-between">
+                  <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-amber-500/20 text-amber-300 border border-amber-500/30">ACTUAL: DETERMINISTIC FIXTURE</span>
+                  <span class="text-amber-300 text-[10px]">STATUS: <strong>FALLBACK</strong></span>
+                </div>
+                <p class="text-[11px] text-amber-200">
+                  Live Gemini was unavailable; verification gracefully proceeded with offline deterministic fixture.
+                </p>
+              `;
+            }
+
           } else if (isLiveGemini) {
             // Case A: Actual Gemini response
             const providerLabel = (obs.provider === 'google-gemini') ? 'Google Gemini' : obs.provider;
@@ -2403,6 +2426,21 @@ ${concise}`;
               auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-purple-950/60 text-purple-300 border border-purple-500/30 font-bold';
             }
 
+            // Reconcile Step 5 mode card to reflect successful Live Gemini execution
+            const cvModeCard = document.getElementById('cv-ai-mode-card');
+            if (cvModeCard) {
+              cvModeCard.className = 'p-2.5 rounded-lg bg-purple-950/40 border border-purple-500/40 text-xs text-purple-200 space-y-1 font-mono';
+              cvModeCard.innerHTML = `
+                <div class="flex items-center justify-between">
+                  <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-purple-600 text-white">LIVE GEMINI (ACTIVE)</span>
+                  <span class="text-purple-300 text-[10px]">Provenance: <strong>AI_ESTIMATED</strong></span>
+                </div>
+                <p class="text-[11px] text-purple-200">
+                  Live Gemini multimodal inference completed successfully on the uploaded evidence.
+                </p>
+              `;
+            }
+
           } else {
             // Case B: Deterministic fixture (explicitly selected and executed)
             if (aiBadge) {
@@ -2440,6 +2478,20 @@ ${concise}`;
               auditModeBadge.textContent = 'DETERMINISTIC FIXTURE';
               auditModeBadge.className = 'text-[10px] font-mono px-2 py-0.5 rounded bg-slate-800 text-slate-300 border border-slate-700 font-bold';
             }
+
+            const cvModeCard = document.getElementById('cv-ai-mode-card');
+            if (cvModeCard) {
+              cvModeCard.className = 'p-2.5 rounded-lg bg-slate-900 border border-slate-700 text-xs text-slate-300 space-y-1 font-mono';
+              cvModeCard.innerHTML = `
+                <div class="flex items-center justify-between">
+                  <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-slate-800 text-slate-300 border border-slate-600">DETERMINISTIC FIXTURE (ACTIVE)</span>
+                  <span class="text-slate-400 text-[10px]">Provenance: <strong class="text-slate-300">SIMULATED</strong></span>
+                </div>
+                <p class="text-[11px] text-slate-400">
+                  Replayed simulated AI telemetry. Uploaded evidence was not sent to Gemini.
+                </p>
+              `;
+            }
           }
         } else if (requestedMode === 'LIVE_GEMINI' || data.ai_requested_mode === 'LIVE_GEMINI') {
           // Case D: Live Gemini was requested but failed/unavailable without fixture fallback
@@ -2460,6 +2512,20 @@ ${concise}`;
               <i class="fa-solid fa-triangle-exclamation mr-1"></i>Live Gemini inference was unavailable. Deterministic verification proceeded without AI observation.
             </div>
           `;
+
+          const cvModeCard = document.getElementById('cv-ai-mode-card');
+          if (cvModeCard) {
+            cvModeCard.className = 'p-2.5 rounded-lg bg-rose-950/40 border border-rose-500/40 text-xs text-rose-200 space-y-1 font-mono';
+            cvModeCard.innerHTML = `
+              <div class="flex items-center justify-between">
+                <span class="px-2 py-0.5 rounded font-bold text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30">STATUS: UNAVAILABLE</span>
+                <span class="text-rose-300 text-[10px]">Provenance: <strong>N/A</strong></span>
+              </div>
+              <p class="text-[11px] text-rose-200">
+                Live Gemini inference was unavailable; verification proceeded without AI observation.
+              </p>
+            `;
+          }
 
           // Synchronize to Evidence & AI tab
           const auditModel = document.getElementById('ai-audit-model');

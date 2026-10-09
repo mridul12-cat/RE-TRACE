@@ -1,8 +1,8 @@
-# RE:TRACE v1.1.1 — Verifiable Circular Economy & Climate Tracking Platform
+# RE:TRACE v1.2 — Verifiable Circular Economy & Climate Tracking Platform
 
 > **IEEE Hackathon — Sustainable Supply Chains Track**  
 > **Autonomous Multi-Agent Architecture for Critical Battery & Electronics Traceability**  
-> *Aligned with EU Battery Passport Regulation (Regulation EU 2023/1542), ISO 14044 LCA Standards, and RFC 8785 Canonical JSON Serialization.*
+> *DPP-oriented architecture designed to support critical battery material traceability, referencing EU Battery Regulation (Regulation EU 2023/1542) data models and RFC 8785 Canonical JSON Serialization.*
 
 ---
 
@@ -117,13 +117,13 @@ Custom Verification allows an evaluator to select an existing Digital Product Pa
 - macOS, Linux, or WSL
 
 ### 1. Run Automated Test Suites
-RE:TRACE includes two independent test suites verifying 100% offline, deterministic behavior with zero external network calls:
+RE:TRACE includes two independent test suites verifying deterministic behavior:
 
 ```bash
-# 1. Run the universal test runner (44 tests across all tiers)
+# 1. Run the universal test runner (108 tests across canonical tiers)
 python3 tests/run_all_tests.py
 
-# 2. Run the comprehensive pytest battery (90 tests including API, Adversarial, and E2E)
+# 2. Run the comprehensive pytest battery (146 tests across all modules)
 ./scripts/run_tests.sh
 # or directly:
 .venv/bin/pytest tests/ -v
@@ -131,30 +131,47 @@ python3 tests/run_all_tests.py
 
 **Test Execution Record**:
 ```
-============================== 90 passed in 0.71s ==============================
-- Tier 1 (Mass Balance Engine & Chemistries)         : 7 tests  [PASS]
-- Tier 1 (Evidence Commitment & RFC 8785 Hashing)    : 15 tests [PASS]
-- Tier 1 (Lifecycle State Machine & Anti-Replay)     : 5 tests  [PASS]
-- Tier 2 & 4 (E2E 12-Stage Vertical Slice Pipeline)  : 7 tests  [PASS]
-- Tier 3 (Adversarial Suite Cases A through J)       : 10 tests [PASS]
-- Tier 3 (Empirical Challenger Edge-Cases & Fuzzing) : 38 tests [PASS]
-- Tier 4 (FastAPI Backend API Endpoints & Scenarios) : 8 tests  [PASS]
-================================================================================
+--------------------------------------------------------------------------------
+1. Universal Zero-Dependency Runner (python3 tests/run_all_tests.py):
+   108 tests executed across canonical tiers in ~0.88s (108 passed, 1 skipped)
+   - Tier 1 (Mass Balance Engine)                       : 11 tests [PASS]
+   - Tier 1 (Evidence Commitment Pipeline)              : 11 tests [PASS]
+   - Tier 1 (Evidence Pipeline Hasher)                  : 4 tests  [PASS]
+   - Tier 1 (Lifecycle State Machine)                   : 5 tests  [PASS]
+   - Tier 2 (FastAPI Backend Integration API)           : 11 tests [PASS]
+   - Tier 2 (Custom Verification Workflow)              : 25 tests [PASS]
+   - Tier 2 (Gemini Vision Multimodal Integration)      : 24 tests [PASS]
+   - Tier 3 (Adversarial Suite Cases A through J)       : 10 tests [PASS]
+   - Tier 2 & 4 (E2E 12-Stage Vertical Slice Pipeline)  : 7 tests  [PASS]
+
+2. Comprehensive Pytest Battery (./scripts/run_tests.sh):
+   146 test items collected in ~1.78s (145 passed, 1 skipped)
+   - All 108 canonical tier tests above                 : 108 tests [PASS]
+   - Tier 3 Challenger Stress Suite (test_mass_balance_adversarial.py) : 19 tests [PASS]
+   - Tier 3 Empirical Challenger Suite (test_empirical_challenger_m1_2.py) : 19 tests [PASS]
+   * Note: 1 test skipped in offline execution is test_18_optional_environment_gated_live_gemini,
+     which activates when live outbound network connectivity to Google Gemini API is available.
+--------------------------------------------------------------------------------
 ```
 
 ### 2. Launch the Interactive Web Dashboard
 
-To run the live interactive dashboard and FastAPI backend:
+The operational hackathon demo is served directly by the FastAPI backend using a self-contained, zero-dependency web dashboard (`backend/app/static/index.html`). No Node.js or `npm` installation is required to run the full interactive demo.
+
+To launch the backend and serving dashboard:
 
 ```bash
 ./scripts/start_demo.sh
 ```
+*(Alternatively: `.venv/bin/uvicorn backend.app.main:app --host 0.0.0.0 --port 8000 --reload`)*
 
 Once running, access the services in your browser:
 - **Interactive UI Dashboard**: [http://localhost:8000/dashboard](http://localhost:8000/dashboard) (or [http://localhost:8000/](http://localhost:8000/))
 - **Interactive OpenAPI Documentation (Swagger UI)**: [http://localhost:8000/docs](http://localhost:8000/docs)
 - **ReDoc API Explorer**: [http://localhost:8000/redoc](http://localhost:8000/redoc)
 - **System Health & Ledger Status**: [http://localhost:8000/health](http://localhost:8000/health)
+
+*(Note: The `frontend/` directory contains an optional Next.js 14 skeleton. For hackathon evaluation and interactive review, the authoritative, fully wired dashboard is served via `./scripts/start_demo.sh` at `http://localhost:8000/dashboard`.)*
 
 ---
 
@@ -209,7 +226,7 @@ Once running, access the services in your browser:
 │       ├── borderline_fixture.json
 │       └── anomalous_fraud_fixture.json
 │
-├── frontend/                    # Next.js 14 + Tailwind CSS dashboard skeleton
+├── frontend/                    # Next.js 14 + Tailwind CSS dashboard skeleton (optional)
 │   ├── package.json
 │   ├── next.config.js
 │   ├── tailwind.config.js
@@ -231,12 +248,15 @@ Once running, access the services in your browser:
 │       └── RETraceRegistry.t.sol# Foundry contract test suite
 │
 ├── tests/                       # Complete automated test battery
-│   ├── run_all_tests.py         # Universal zero-dependency test runner (59 tests across 7 tiers)
+│   ├── run_all_tests.py         # Universal zero-dependency test runner (108 tests across canonical tiers)
 │   ├── test_mass_balance.py     # Mass-balance engine unit tests (NMC 622, LCO, LFP, Sodium-ion)
 │   ├── test_evidence_commitment.py # RFC 8785 & Keccak256 commitment tests
+│   ├── test_evidence_pipeline.py # RFC 8785 canonical hasher & EVM vector tests
 │   ├── test_state_machine.py    # State machine transition & role tests
 │   ├── test_vertical_slice.py   # 12-stage programmatic E2E vertical slice
 │   ├── test_adversarial.py      # Cases A through J adversarial validation suite
+│   ├── test_custom_verification.py # Custom verification workbench & workflow tests
+│   ├── test_gemini_vision_integration.py # Dual-mode AI vision & timeout/fallback tests
 │   ├── test_mass_balance_adversarial.py # Adversarial stress, boundary & float tests
 │   ├── test_empirical_challenger_m1_2.py # Stress, fuzzing & numerical precision tests
 │   └── test_backend_api.py      # FastAPI HTTP integration, polyglot uploads & scenario tests
@@ -285,7 +305,7 @@ A comprehensive security review was conducted covering threats T-01 through T-08
 - **T-07 (Simulated Outage & Network Desync)**: Defended via explicit connection state tracking in `backend/app/services/blockchain_service.py`. During RPC downtime, transactions enter an `UNCONFIRMED` state rather than faking success.
 - **T-08 (Credential Leakage)**: Zero private keys or Gemini API keys in repository code. Managed strictly through environment variables.
 
-*(For full verification records and OWASP ASVS matrix, see [`docs/security-review.md`](docs/security-review.md).)*
+*(For full verification records and internal threat model review, see [`docs/security-review.md`](docs/security-review.md).)*
 
 ---
 
@@ -293,10 +313,10 @@ A comprehensive security review was conducted covering threats T-01 through T-08
 
 | Evaluation Rubric | Requirement | RE:TRACE Implementation Evidence |
 | :--- | :--- | :--- |
-| **Working Functionality** | End-to-end operational code, zero mock placeholders | 97 passing pytest integration tests (59 in universal runner across all 7 tiers); executable FastAPI backend + Web Dashboard; live 1-click scenarios A, B, and C. |
+| **Working Functionality** | End-to-end operational code, zero mock placeholders | 145 passing pytest tests (108 in universal runner across canonical tiers, 1 optional network test skipped); executable FastAPI backend + Web Dashboard; live 1-click scenarios A, B, and C. |
 | **Technical Defensibility** | Physical-chemical rigor, no black-box AI decisions | Stoichiometric mass balance with elemental bounds for NMC 622, LCO, LFP, and Sodium-ion (SIB) chemistries; RFC 8785 canonical hashing. |
-| **Climate & Circular Impact** | Transparent traceability for critical minerals | Enforces the EU Battery Passport recycled content quotas; eliminates double counting, paper greenwashing, and false recovery claims. |
-| **Security & Truthfulness** | Robust threat model; truthful blockchain reporting | MIME sniffing; polyglot & executable signature rejection; non-bypassable quarantine; truthful `LOCAL TESTNET` labeling; disk-backed ledger persistence. |
+| **Climate & Circular Impact** | Transparent traceability for critical minerals | Designed to support circular material traceability and verify recovery claims; mitigates double counting, paper greenwashing, and false recovery claims. |
+| **Security & Truthfulness** | Robust threat model; truthful blockchain reporting | MIME sniffing; polyglot & executable signature rejection; non-bypassable quarantine; truthful `LOCAL TESTNET` labeling; disk-backed ledger persistence; internal threat review. |
 | **Reliability & Edge Cases** | Offline testability, deterministic results | 100% offline reproducible test execution with dual-mode AI fixtures; zero external internet requirements. |
 | **Judgeability & UX** | Clear demo narrative with provenance visualization | Clean Web Dashboard featuring real-time provenance badges, mass balance charts, hash match inspections, and PoR certificate rendering. |
 
@@ -305,4 +325,4 @@ A comprehensive security review was conducted covering threats T-01 through T-08
 ## License & Acknowledgments
 
 Developed for the **IEEE Hackathon — Sustainable Supply Chains Track**.  
-Built with FastAPI, Next.js, Tailwind CSS, Solidity, Google Gemini Multimodal AI, and Pydantic.
+Built with FastAPI, HTML5/Tailwind, Solidity, Google Gemini Multimodal AI, and Pydantic (with optional Next.js frontend skeleton).

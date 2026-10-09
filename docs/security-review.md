@@ -1,15 +1,15 @@
 # RE:TRACE Platform Security & Threat Model Review
 
-- **Status**: COMPLETED & VERIFIED
+- **Status**: COMPLETED (INTERNAL ASSESSMENT)
 - **Date**: 2026-10-08
 - **Scope**: Canonical Schemas (`shared/`), FastAPI Backend (`backend/`), Smart Contracts (`contracts/`), Dual-Mode AI (`ml/`), and Storage Engine
-- **Standard**: Section R7 Security Requirements & OWASP ASVS Level 2
+- **Methodology**: Internal Developer Security Review & Threat Modeling (informed by Section R7 and OWASP ASVS guidelines)
 
 ---
 
 ## 1. Executive Summary
 
-RE:TRACE provides verifiable Circular Economy digital product passports, AI visual observation, closed-form mass-balance verification, and cryptographic blockchain lifecycle tracking. Because RE:TRACE verifies secondary raw material claims (Cobalt, Nickel, Lithium) that trigger statutory compliance and financial certificate issuance under EU Battery Regulation 2023/1542, the system must withstand deliberate adversary attacks, including fraudulent yield inflation, evidence file tampering, replay attacks, duplicate certificate requests, and unauthorized role elevation.
+RE:TRACE provides verifiable Circular Economy digital product passports, AI visual observation, closed-form mass-balance verification, and cryptographic blockchain lifecycle tracking. Because RE:TRACE models verification of secondary raw material claims (Cobalt, Nickel, Lithium) within a circular battery passport architecture, the system is designed to withstand deliberate adversarial scenarios, including fraudulent yield inflation, evidence file tampering, replay attacks, duplicate certificate requests, and unauthorized role elevation.
 
 This security review details the threat vectors, implemented defenses, verification tests, and residual risk posture.
 
@@ -68,10 +68,17 @@ All endpoints catch domain exceptions via `retrace_exception_handler`. Responses
 ## 4. Verification & Audit Trail
  
 All security defenses are exercised and continuously tested across the test suites:
-- `tests/test_adversarial.py` (Cases A through J)
+- `tests/test_adversarial.py` (Cases A through J adversarial validation)
 - `tests/test_backend_api.py` (HTTP endpoint integration, polyglot uploads, state persistence, and quarantine)
+- `tests/test_custom_verification.py` (Custom verification workflow and input validation)
+- `tests/test_gemini_vision_integration.py` (API key protection, payload validation, and graceful fallback)
 - `tests/test_mass_balance_adversarial.py` (Stress tests and mathematical boundary attacks)
 - `tests/test_empirical_challenger_m1_2.py` (Cryptographic sensitivity and collision attacks)
 - `tests/test_mass_balance.py` (NMC 622, LCO, LFP, and Sodium-ion battery conservation tests)
 
-**Execution Result**: 97/97 tests passing in pytest suite (59/59 in universal runner). Zero vulnerabilities found.
+**Execution Result**: 145/146 tests passing in pytest suite (108/108 in universal runner, with 1 environment-gated live network test skipped).
+
+### 4.1. Security Review Scope & Testing Limitations
+- **Internal Assessment**: This review represents an internal engineering evaluation and threat modeling exercise. It is not an external third-party audit, formal certification, or independent penetration test.
+- **Automated Testing Disclaimer**: Passing automated security and adversarial test suites demonstrates that the implemented controls mitigate the evaluated threat vectors (T-01 through T-08). However, automated test execution does not prove the complete absence of vulnerabilities or unforeseen implementation flaws.
+- **Operational Hardening**: Production deployments require additional operational controls, including dedicated key management (KMS/HSM), formal infrastructure monitoring, and external third-party penetration testing.

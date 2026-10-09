@@ -85,21 +85,22 @@ The web dashboard header provides three prominent 1-click execution buttons at t
 
 ## 3. Automated Test Suite Verification
 
-To verify that all 90 tests across Tiers 1 through 4 pass cleanly:
+To verify that all tests across canonical tiers and challenger suites pass cleanly:
 
 ```bash
-# Run universal zero-dependency runner (Standard Library)
+# Run universal zero-dependency runner (Standard Library, 108 tests across canonical tiers)
 python3 tests/run_all_tests.py
 
-# Run comprehensive pytest battery (90 tests across all modules)
+# Run comprehensive pytest battery (146 tests including challenger stress suites)
 ./scripts/run_tests.sh
 ```
 
 **Expected Result**:
 ```
-============================== 90 passed in 0.65s ==============================
+======================== 145 passed, 1 skipped in ~1.8s ========================
 >>> ALL TIERS PASSED VERIFICATION (STATUS: GREEN) <<<
 ```
+*(Note: 1 test skipped in offline execution is `test_18_optional_environment_gated_live_gemini`, which runs when live internet access to the Google Gemini API is available).*
 
 ---
 

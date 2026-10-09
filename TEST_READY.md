@@ -2,8 +2,8 @@
 
 **Status**: READY (ALL TIERS GREEN)  
 **Execution Mode**: 100% Deterministic & Offline (Zero Network / Zero External API Dependencies)  
-**Universal Runner Metrics**: 44 Core Tests (100% PASS, ~0.027s)  
-**Comprehensive Pytest Metrics**: 82 Battery Tests (100% PASS, ~0.43s)  
+**Universal Runner Metrics**: 108 Canonical Tier Tests (108 passed, 1 skipped in ~0.88s)  
+**Comprehensive Pytest Metrics**: 146 Battery Tests (145 passed, 1 skipped in ~1.78s)  
 **Failures**: 0  
 **Errors**: 0  
 
@@ -15,34 +15,13 @@
 ```bash
 python3 tests/run_all_tests.py
 ```
-*Auto-detects local `.venv` site-packages and executes all 44 canonical architecture tests across Tiers 1–4 without requiring pytest installed globally.*
+*Auto-detects local `.venv` site-packages and executes all 108 canonical architecture tests across Tiers 1–4 without requiring pytest installed globally.*
 
 ### Comprehensive Pytest Battery Runner
 ```bash
 ./scripts/run_tests.sh
 ```
-*Executes all 82 unit, integration, and challenger adversarial tests using pytest in the project virtual environment.*
-
-### Individual Core Test Suite Invocations (Standard Library Unittest)
-```bash
-# Tier 1: Deterministic Mass-Balance & Tolerance Tests (7 tests)
-python3 -m unittest tests/test_mass_balance.py
-
-# Tier 1: Canonical Evidence Commitment Pipeline, RFC 8785 JCS & EVM Keccak-256 (11 tests)
-python3 -m unittest tests/test_evidence_commitment.py
-
-# Tier 1: RFC 8785 Canonical Hasher & EVM Vectors (4 tests)
-python3 -m unittest tests/test_evidence_pipeline.py
-
-# Tier 1: Lifecycle State Transitions, Guard Matrix & Role Authorization (5 tests)
-python3 -m unittest tests/test_state_machine.py
-
-# Tier 3: Mandatory Adversarial Test Suite (Cases A through J) (10 tests)
-python3 -m unittest tests/test_adversarial.py
-
-# Tier 2 & 4: Thin End-to-End Vertical Slice (12 Stages) (7 tests)
-python3 -m unittest tests/test_vertical_slice.py
-```
+*Executes all 146 unit, integration, and challenger adversarial tests using pytest in the project virtual environment.*
 
 ---
 
@@ -50,16 +29,19 @@ python3 -m unittest tests/test_vertical_slice.py
 
 | Test Suite | Primary Test File | Tier | Runner | Tests | Status |
 |---|---|---|---|:---:|:---:|
-| Deterministic Mass-Balance Engine | `tests/test_mass_balance.py` | Tier 1 | Universal / Pytest | 7 | **PASS** |
+| Deterministic Mass-Balance Engine | `tests/test_mass_balance.py` | Tier 1 | Universal / Pytest | 11 | **PASS** |
 | Cryptographic Evidence Commitment Pipeline | `tests/test_evidence_commitment.py` | Tier 1 | Universal / Pytest | 11 | **PASS** |
 | RFC 8785 Canonical Hasher & EVM Vectors | `tests/test_evidence_pipeline.py` | Tier 1 | Universal / Pytest | 4 | **PASS** |
 | Lifecycle State Machine & Transition Guards | `tests/test_state_machine.py` | Tier 1 | Universal / Pytest | 5 | **PASS** |
+| FastAPI Backend Integration API | `tests/test_backend_api.py` | Tier 2 | Universal / Pytest | 11 | **PASS** |
+| Custom Verification Workflow | `tests/test_custom_verification.py` | Tier 2 | Universal / Pytest | 25 | **PASS** |
+| Dual-Mode Gemini Vision Multimodal Integration | `tests/test_gemini_vision_integration.py` | Tier 2 | Universal / Pytest | 24 | **PASS** |
 | Mandatory Adversarial Suite (Cases A–J) | `tests/test_adversarial.py` | Tier 3 | Universal / Pytest | 10 | **PASS** |
 | 12-Stage E2E Vertical Slice Integration | `tests/test_vertical_slice.py` | Tier 2 & 4 | Universal / Pytest | 7 | **PASS** |
-| **SUBTOTAL (Universal Runner)** | **Canonical Core Suites** | **Tiers 1–4** | **`run_all_tests.py`** | **44** | **100% PASS** |
+| **SUBTOTAL (Universal Runner)** | **Canonical Core Suites (9 files)** | **Tiers 1–4** | **`run_all_tests.py`** | **108** | **100% PASS** |
 | Mass-Balance Adversarial Stress Suite | `tests/test_mass_balance_adversarial.py` | Challenger | Pytest Only | 19 | **PASS** |
 | Empirical Cryptography & Lifecycle Attacks | `tests/test_empirical_challenger_m1_2.py` | Challenger | Pytest Only | 19 | **PASS** |
-| **TOTAL (Comprehensive Battery)** | **All 8 Test Files** | **All Tiers** | **`run_tests.sh`** | **82** | **100% PASS** |
+| **TOTAL (Comprehensive Battery)** | **All 11 Test Files** | **All Tiers** | **`run_tests.sh`** | **146** | **145 PASS, 1 SKIPPED** |
 
 ---
 
