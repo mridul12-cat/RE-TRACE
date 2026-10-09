@@ -178,7 +178,7 @@ Once running, access the services in your browser:
 ## Repository Structure
 
 ```
-├── ORIGINAL_REQUEST.md          # Multi-agent prompt specifications & requirement rubric
+
 ├── PROJECT.md                   # System vision, component mapping, and milestone roadmaps
 ├── README.md                    # Root project documentation and IEEE evaluation guide
 │
