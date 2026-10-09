@@ -1,0 +1,13 @@
+# ==============================================================================
+# RE:TRACE — Development & Test Dependencies Manifest
+# ==============================================================================
+# Usage: pip install -r requirements-dev.txt
+# ==============================================================================
+
+-r requirements.txt
+
+# Test Runner for Comprehensive Test Battery (./scripts/run_tests.sh)
+pytest==8.4.2
+
+# Async HTTP Client (required by fastapi.testclient.TestClient in test suites)
+httpx==0.28.1

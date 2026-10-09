@@ -1,0 +1,20 @@
+# ==============================================================================
+# RE:TRACE — Production Dependencies Manifest (Render Web Service)
+# ==============================================================================
+# Deployment Target: Render Web Service (FastAPI + Uvicorn)
+# Build Command: pip install -r requirements.txt
+# Start Command: python -m uvicorn backend.app.main:app --host 0.0.0.0 --port $PORT
+# Runtime: Python >=3.9, <3.13 (Tested on Python 3.9.6 & 3.11)
+# ==============================================================================
+
+# Core ASGI Web Framework
+fastapi==0.128.8
+
+# Production ASGI Server with performance extras (uvloop, httptools)
+uvicorn[standard]==0.39.0
+
+# Canonical Domain Schemas & Verification Models (Pydantic v2)
+pydantic==2.13.5
+
+# Multipart Form Data Parsing (required for POST /api/v1/evidence/upload)
+python-multipart==0.0.20
